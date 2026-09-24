@@ -25,7 +25,7 @@ function AccountButton() {
         onClick={handleSignOut}
         title={"已用 Google 登入：" + user.displayName + "（點一下登出）"}
         aria-label="登出"
-        className="shrink-0 w-9 h-9 flex items-center justify-center rounded-full border border-amber-200 bg-white hover:border-brand-400 overflow-hidden text-sm font-bold text-brand-700"
+        className="shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-amber-200 bg-white hover:border-brand-400 overflow-hidden text-sm font-bold text-brand-700"
       >
         {user.photoURL ? (
           <img src={user.photoURL} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -39,7 +39,7 @@ function AccountButton() {
   return (
     <button
       onClick={handleSignIn}
-      className="shrink-0 rounded-full border border-amber-200 bg-white hover:border-brand-400 text-slate-600 text-xs font-medium px-3 h-9"
+      className="shrink-0 rounded-full border border-amber-200 bg-white hover:border-brand-400 text-slate-600 text-xs font-medium px-3 h-10"
     >
       Google 登入
     </button>

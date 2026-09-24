@@ -32,6 +32,7 @@ function LinkedShoppingMiniList({ tripId, wishlistItemId, nickname }) {
                 key={(item.isPrivate ? "p-" : "s-") + item.id}
                 tripId={tripId}
                 item={item}
+                nickname={nickname}
                 compact={true}
                 onImageClick={function () { setLightboxIndex(index); }}
               />

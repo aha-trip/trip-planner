@@ -1,58 +1,40 @@
-// 用拉桿(滑桿)調整全站字體大小（照顧長輩/視力不便的使用者），點「A」展開小面板
-function FontSizeButton({ className }) {
+// 字體大小：小 A / 大 A 兩顆按鈕，點一下縮小或放大一級（手機好按，不用拖拉桿）。照顧長輩/視力不便的使用者。
+function FontSizeButton() {
   const { scale, levels } = useFontScale();
-  const [open, setOpen] = React.useState(false);
-  const wrapRef = React.useRef(null);
   const level = levels.indexOf(scale);
-  const levelNames = ["標準", "大", "特大", "加大"];
 
-  React.useEffect(function () {
-    if (!open) return;
-    function onOutsideClick(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onOutsideClick);
-    return function () { document.removeEventListener("mousedown", onOutsideClick); };
-  }, [open]);
-
-  function handleSlide(e) {
-    const idx = parseInt(e.target.value, 10);
-    applyFontScale(levels[idx]);
+  function step(dir) {
+    const next = Math.max(0, Math.min(levels.length - 1, level + dir));
+    if (next !== level) applyFontScale(levels[next]);
   }
 
   return (
-    <div className="relative" ref={wrapRef}>
+    <div
+      role="group"
+      aria-label="調整字體大小"
+      className="shrink-0 h-10 flex items-center rounded-full border border-amber-200 bg-white overflow-hidden"
+    >
       <button
         type="button"
-        onClick={function () { setOpen(function (v) { return !v; }); }}
-        title="調整字體大小"
-        aria-label="調整字體大小"
-        className={
-          (className || "") +
-          " shrink-0 w-9 h-9 flex items-center justify-center rounded-full border border-amber-200 bg-white hover:border-brand-400 text-slate-600 font-bold"
-        }
+        onClick={function () { step(-1); }}
+        disabled={level <= 0}
+        aria-label="縮小字體"
+        title="縮小字體"
+        className="w-10 h-10 flex items-center justify-center font-bold text-slate-600 disabled:opacity-30 active:bg-amber-50"
       >
-        <span style={{ fontSize: (13 + level * 2.5) + "px" }}>A</span>
+        <span style={{ fontSize: "13px" }}>A</span>
       </button>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-amber-100 p-4 z-30">
-          <p className="text-sm font-semibold text-slate-700 mb-2">字體大小：{levelNames[level]}</p>
-          <input
-            type="range"
-            min="0"
-            max={levels.length - 1}
-            step="1"
-            value={level}
-            onChange={handleSlide}
-            className="w-full accent-brand-600"
-          />
-          <div className="flex justify-between text-xs text-slate-400 mt-1">
-            <span>小</span>
-            <span>大</span>
-          </div>
-        </div>
-      )}
+      <span className="w-px h-5 bg-amber-200" />
+      <button
+        type="button"
+        onClick={function () { step(1); }}
+        disabled={level >= levels.length - 1}
+        aria-label="放大字體"
+        title="放大字體"
+        className="w-10 h-10 flex items-center justify-center font-bold text-slate-700 disabled:opacity-30 active:bg-amber-50"
+      >
+        <span style={{ fontSize: "22px" }}>A</span>
+      </button>
     </div>
   );
 }

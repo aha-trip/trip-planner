@@ -1,9 +1,11 @@
-function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }) {
+function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, nickname }) {
   const [changingLink, setChangingLink] = React.useState(false);
   const [editingCaption, setEditingCaption] = React.useState(false);
   const [captionDraft, setCaptionDraft] = React.useState(item.caption || "");
+  const [editingScope, setEditingScope] = React.useState(false);
   const isPrivate = Boolean(item.isPrivate);
-  const isSpecificShare = !isPrivate && item.visibleTo && item.visibleTo.length > 0;
+  // 只有新增這筆的人（或私人項目的主人）可以改分享範圍
+  const canEditScope = isPrivate || (Boolean(nickname) && item.addedBy === nickname);
 
   const linkedWishlist = (wishlistItems || []).find(function (w) { return w.id === item.linkedWishlistItemId; });
 
@@ -44,45 +46,51 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }
     }
   }
 
-  const badge = isPrivate
-    ? { Icon: LockIcon, text: "只有我看得到" }
-    : isSpecificShare
-    ? { Icon: PeopleIcon, text: "指定對象", title: "分享給：" + item.visibleTo.join("、") }
-    : null;
+  const scope = scopeOfItem(item);
+  const scopeInfo = {
+    everyone: { Icon: GlobeIcon, text: "所有人", title: "所有人都看得到" },
+    specific: { Icon: PeopleIcon, text: "指定對象", title: "分享給：" + (item.visibleTo || []).join("、") },
+    private: { Icon: LockIcon, text: "只有我", title: "只有我看得到" },
+  }[scope];
+
+  const scopeEditor = editingScope && (
+    <ShareScopeEditor tripId={tripId} item={item} nickname={nickname} onClose={function () { setEditingScope(false); }} />
+  );
 
   if (compact) {
     return (
-      <div className="w-24 shrink-0">
+      <div className="w-28 shrink-0">
+        {scopeEditor}
         <div className="relative">
           <img
             src={item.imageUrl}
             alt={item.caption || "購物截圖"}
             onClick={onImageClick}
-            className="w-24 h-24 object-cover rounded-lg cursor-zoom-in"
+            className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
           />
-          {badge && (
-            <span
-              className="absolute top-0.5 left-0.5 flex items-center gap-0.5 text-[9px] leading-none px-1 py-0.5 rounded-full bg-slate-900/70 text-white"
-              title={badge.title}
-            >
-              <badge.Icon className="w-2.5 h-2.5" /> {badge.text}
-            </span>
-          )}
+          <button
+            onClick={function (e) { e.stopPropagation(); if (canEditScope) setEditingScope(true); }}
+            title={scopeInfo.title}
+            className="absolute bottom-1 left-1 min-h-[28px] flex items-center gap-1 text-[11px] leading-none px-2 rounded-full bg-slate-900/70 text-white"
+          >
+            <scopeInfo.Icon className="w-3 h-3" /> {scopeInfo.text}
+          </button>
           <button
             onClick={handleDelete}
-            className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-slate-900/60 text-white text-[10px] leading-none"
+            className="absolute top-1 right-1 w-7 h-7 flex items-center justify-center rounded-full bg-slate-900/60 text-white text-xs leading-none"
             aria-label="刪除"
           >
             ✕
           </button>
         </div>
-        {item.caption && <p className="text-[11px] text-slate-500 truncate mt-1">{item.caption}</p>}
+        {item.caption && <p className="text-xs text-slate-500 truncate mt-1">{item.caption}</p>}
       </div>
     );
   }
 
   return (
     <div className="bg-white rounded-xl border border-amber-100 overflow-hidden">
+      {scopeEditor}
       <div className="relative">
         <img
           src={item.imageUrl}
@@ -90,19 +98,11 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }
           onClick={onImageClick}
           className="w-full h-40 object-cover cursor-zoom-in"
         />
-        {badge && (
-          <span
-            className="absolute top-1 left-1 flex items-center gap-1 text-[10px] leading-none px-1.5 py-1 rounded-full bg-slate-900/70 text-white"
-            title={badge.title}
-          >
-            <badge.Icon className="w-3 h-3" /> {badge.text}
-          </span>
-        )}
       </div>
       <div className="p-3">
         {!editingCaption ? (
           <p
-            className="text-sm text-slate-700 truncate cursor-text hover:bg-amber-50 rounded px-1 -mx-1"
+            className="text-sm text-slate-700 truncate cursor-text hover:bg-amber-50 rounded px-1 -mx-1 min-h-[32px] flex items-center"
             onClick={function () { setCaptionDraft(item.caption || ""); setEditingCaption(true); }}
             title="點一下編輯備註"
           >
@@ -111,7 +111,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }
         ) : (
           <input
             autoFocus
-            className="w-full text-sm rounded border border-amber-200 px-1.5 py-0.5 focus:outline-none focus:ring-2 focus:ring-brand-400"
+            className="w-full text-base rounded border border-amber-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-400"
             value={captionDraft}
             onChange={function (e) { setCaptionDraft(e.target.value); }}
             onBlur={handleSaveCaption}
@@ -120,10 +120,21 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }
         )}
         <p className="text-xs text-slate-400 mt-0.5">by {item.addedBy}</p>
 
-        <div className="mt-2">
+        <button
+          onClick={function () { if (canEditScope) setEditingScope(true); }}
+          title={scopeInfo.title}
+          className={
+            "mt-2 min-h-[36px] inline-flex items-center gap-1 text-xs rounded-full px-2.5 border " +
+            (canEditScope ? "border-amber-200 text-slate-600 bg-white active:bg-amber-50" : "border-transparent text-slate-400 px-0")
+          }
+        >
+          <scopeInfo.Icon className="w-3.5 h-3.5" /> {scopeInfo.text}{canEditScope ? " ›" : ""}
+        </button>
+
+        <div className="mt-1">
           {!changingLink ? (
             <button
-              className="text-xs text-brand-600 hover:underline inline-flex items-center gap-1"
+              className="min-h-[36px] text-xs text-brand-600 inline-flex items-center gap-1"
               onClick={function () { setChangingLink(true); }}
             >
               {linkedWishlist ? (<><PinIcon className="w-3 h-3" /> {linkedWishlist.name}</>) : "＋ 連結地點"}
@@ -131,7 +142,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }
           ) : (
             <select
               autoFocus
-              className="text-xs rounded border border-amber-200 px-2 py-1"
+              className="text-base rounded border border-amber-200 px-2 py-1.5"
               defaultValue={item.linkedWishlistItemId || ""}
               onChange={handleChangeLink}
               onBlur={function () { setChangingLink(false); }}
@@ -144,7 +155,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick }
           )}
         </div>
 
-        <button onClick={handleDelete} className="text-xs text-red-500 hover:underline mt-2">
+        <button onClick={handleDelete} className="min-h-[36px] text-xs text-red-500">
           刪除
         </button>
       </div>

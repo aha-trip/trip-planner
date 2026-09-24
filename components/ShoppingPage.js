@@ -45,6 +45,7 @@ function ShoppingPage({ tripId, nickname }) {
                 key={(item.isPrivate ? "p-" : "s-") + item.id}
                 tripId={tripId}
                 item={item}
+                nickname={nickname}
                 wishlistItems={wishlistItems}
                 onImageClick={function () { setLightboxIndex(index); }}
               />

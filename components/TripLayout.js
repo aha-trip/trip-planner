@@ -104,7 +104,7 @@ function TripLayout({ tripId, activeTab }) {
       {locked && !dismissedGooglePrompt && (
         <GoogleRequiredPrompt onDismiss={function () { setDismissedGooglePrompt(true); }} />
       )}
-      {!locked && !nickname && <NicknamePrompt onSubmit={setNickname} />}}
+      {!locked && !nickname && <NicknamePrompt onSubmit={setNickname} />}
 
       <header
         ref={setHeaderEl}
@@ -123,35 +123,35 @@ function TripLayout({ tripId, activeTab }) {
             🔒 這趟行程限 Google 登入者編輯，目前是唯讀，你的修改不會儲存
           </div>
         )}
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div className="max-w-3xl mx-auto px-4 pt-3 pb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <a
               href="#/"
-              className="shrink-0 w-9 h-9 flex items-center justify-center rounded-full hover:bg-brand-50"
+              className="shrink-0 w-10 h-10 flex items-center justify-center rounded-full hover:bg-brand-50"
               aria-label="回首頁"
               title="回首頁"
             >
               <LogoIcon className="w-8 h-8" />
             </a>
-            <h1 className="text-lg font-bold text-slate-800 truncate min-w-0">
+            <h1 className="text-lg font-bold text-slate-800 min-w-0 leading-snug break-words line-clamp-2">
               {trip.name}
               {trip.destination && <span> · {trip.destination}</span>}
             </h1>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
             <button
               onClick={function () { setShowMembers(true); }}
               title="行程成員"
               aria-label="行程成員"
-              className="shrink-0 w-9 h-9 flex items-center justify-center rounded-full border border-amber-200 bg-white hover:border-brand-400 text-slate-600"
+              className="shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-amber-200 bg-white hover:border-brand-400 text-slate-600"
             >
-              <PeopleIcon className="w-4.5 h-4.5" />
+              <PeopleIcon className="w-5 h-5" />
             </button>
             <FontSizeButton />
             <AccountButton />
             <button
               onClick={copyShareLink}
-              className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-1.5 transition"
+              className="shrink-0 h-10 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 transition"
             >
               {copied ? "已複製！" : "分享連結"}
             </button>

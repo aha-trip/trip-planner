@@ -9,8 +9,6 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
   const [uploading, setUploading] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  const { data: members } = useCollection("trips/" + tripId + "/members");
-  const otherMembers = members.filter(function (m) { return m.nickname !== nickname; });
 
   React.useEffect(function () {
     if (!file) {
@@ -37,12 +35,6 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
         break;
       }
     }
-  }
-
-  function toggleMember(name) {
-    setSelectedMembers(function (prev) {
-      return prev.indexOf(name) >= 0 ? prev.filter(function (n) { return n !== name; }) : prev.concat([name]);
-    });
   }
 
   async function handleSubmit(e) {
@@ -112,20 +104,20 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
         </div>
       ) : (
         <div className="space-y-2">
+          <button
+            type="button"
+            onClick={function () { document.getElementById(fileInputId).click(); }}
+            className="w-full min-h-[48px] rounded-lg border-2 border-brand-400 text-brand-700 font-medium bg-brand-50 active:bg-brand-100"
+          >
+            📁 從相簿選擇圖片
+          </button>
           <textarea
             value=""
             onChange={function () {}}
             onPaste={handlePaste}
-            placeholder="點這裡，然後貼上 (Ctrl+V) 截圖　手機請長按此處選「貼上」"
+            placeholder="或在這裡貼上截圖（電腦 Ctrl+V／手機長按選「貼上」）"
             className="w-full h-16 resize-none border-2 border-dashed border-amber-200 rounded-lg p-2 text-center text-xs text-slate-500 focus:outline-none focus:border-brand-400"
           />
-          <button
-            type="button"
-            onClick={function () { document.getElementById(fileInputId).click(); }}
-            className="w-full text-xs text-brand-600 hover:underline py-1"
-          >
-            📁 或從相簿選擇圖片
-          </button>
           <input
             id={fileInputId}
             type="file"
@@ -156,80 +148,21 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
         </select>
       )}
 
-      <div>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            onClick={function () { setShareMode("everyone"); }}
-            className={
-              "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition " +
-              (shareMode === "everyone" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
-            }
-          >
-            <GlobeIcon className="w-3.5 h-3.5" /> 所有人
-          </button>
-          <button
-            type="button"
-            onClick={function () { setShareMode("specific"); }}
-            className={
-              "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition " +
-              (shareMode === "specific" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
-            }
-          >
-            <PeopleIcon className="w-3.5 h-3.5" /> 指定對象
-          </button>
-          <button
-            type="button"
-            onClick={function () { setShareMode("private"); }}
-            className={
-              "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition " +
-              (shareMode === "private" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
-            }
-          >
-            <LockIcon className="w-3.5 h-3.5" /> 只有我
-          </button>
-        </div>
-
-        {shareMode === "specific" && (
-          <div className="mt-2 p-2 rounded-lg bg-cream border border-amber-100">
-            {otherMembers.length === 0 ? (
-              <p className="text-xs text-slate-400">還沒有其他成員的資料，等他們打開這個行程連結、設定暱稱後就會出現在這裡。</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {otherMembers.map(function (m) {
-                  const checked = selectedMembers.indexOf(m.nickname) >= 0;
-                  return (
-                    <button
-                      type="button"
-                      key={m.id}
-                      onClick={function () { toggleMember(m.nickname); }}
-                      className={
-                        "px-2.5 py-1 rounded-full text-xs font-medium border transition " +
-                        (checked ? "bg-brand-500 border-brand-500 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
-                      }
-                    >
-                      {checked ? "✓ " : ""}{m.nickname}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <p className="text-xs text-slate-400 mt-1.5">
-              提醒：這個 App 沒有帳號登入，「指定對象」是依暱稱過濾畫面顯示，不是真正加密隔離。
-            </p>
-          </div>
-        )}
-        {shareMode === "private" && (
-          <p className="text-xs text-slate-400 mt-1.5">這個只會存在你這個瀏覽器，不會同步給其他行程成員。</p>
-        )}
-      </div>
+      <ShareScopePicker
+        tripId={tripId}
+        nickname={nickname}
+        mode={shareMode}
+        onModeChange={setShareMode}
+        selectedMembers={selectedMembers}
+        onMembersChange={setSelectedMembers}
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button
         type="submit"
         disabled={uploading}
-        className="w-full rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium py-2 transition"
+        className="w-full min-h-[48px] rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-medium transition"
       >
         {uploading ? "新增中..." : "新增到購物清單"}
       </button>

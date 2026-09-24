@@ -49,19 +49,19 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
             <button
               onClick={onMoveUp}
               disabled={isFirst}
-              className="text-slate-400 hover:text-slate-700 disabled:opacity-25 text-sm px-1"
+              className="w-10 h-10 text-lg text-slate-400 hover:text-slate-700 disabled:opacity-25"
             >
               ▲
             </button>
             <button
               onClick={onMoveDown}
               disabled={isLast}
-              className="text-slate-400 hover:text-slate-700 disabled:opacity-25 text-sm px-1"
+              className="w-10 h-10 text-lg text-slate-400 hover:text-slate-700 disabled:opacity-25"
             >
               ▼
             </button>
           </div>
-          <button onClick={handleRemove} className="text-xs text-red-500 hover:underline">
+          <button onClick={handleRemove} className="min-h-[36px] px-2 -mr-2 text-xs text-red-500">
             移除
           </button>
         </div>

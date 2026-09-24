@@ -48,7 +48,7 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
           {item.notes && <p className="text-sm text-slate-600 mt-1">{item.notes}</p>}
           <p className="text-xs text-slate-400 mt-1">by {item.addedBy}</p>
         </div>
-        <button onClick={handleDelete} className="text-xs text-red-500 hover:underline shrink-0">
+        <button onClick={handleDelete} className="min-h-[40px] px-2 -mr-2 text-xs text-red-500 shrink-0">
           刪除
         </button>
       </div>
@@ -57,7 +57,7 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {dayList.length > 0 ? (
             <select
-              className="text-sm rounded-lg border border-amber-200 px-2 py-1.5"
+              className="text-sm rounded-lg border border-amber-200 px-2 py-2.5"
               value={selectedDay}
               onChange={function (e) { setSelectedDay(e.target.value); }}
             >
@@ -70,7 +70,7 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
               選日期：
               <input
                 type="date"
-                className="text-sm rounded-lg border border-amber-200 px-2 py-1.5"
+                className="text-sm rounded-lg border border-amber-200 px-2 py-2.5"
                 value={customDate}
                 onChange={function (e) { setCustomDate(e.target.value); }}
               />
@@ -78,7 +78,7 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
           )}
           <button
             onClick={handleAddToItinerary}
-            className="text-sm rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 transition"
+            className="text-sm rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 transition"
           >
             ＋ 加入行程
           </button>
@@ -87,7 +87,7 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
       {isScheduled && !showAddAnotherDay && (
         <button
           onClick={function () { setShowAddAnotherDay(true); }}
-          className="mt-3 text-sm rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 px-3 py-1.5 transition"
+          className="mt-3 text-sm rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 px-3 py-2.5 transition"
         >
           ＋ 也想排進其他天
         </button>

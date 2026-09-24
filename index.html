@@ -29,6 +29,11 @@
       },
     };
   </script>
+  <style>
+    /* 手機上輸入框字體小於 16px，iOS Safari 會在點進去時自動放大整個頁面，很干擾，所以統一至少 16px */
+    @media (max-width: 640px) { input, select, textarea { font-size: 16px !important; } }
+    button, a { -webkit-tap-highlight-color: transparent; }
+  </style>
 </head>
 <body>
   <div id="root">
@@ -62,6 +67,7 @@
   <script src="lib/directions.js"></script>
   <script src="lib/weather.js"></script>
   <script src="lib/privateShopping.js"></script>
+  <script src="lib/shoppingScope.js"></script>
   <script src="lib/visibility.js"></script>
   <script src="lib/recentTrips.js"></script>
   <script src="hooks/useLocalIdentity.js"></script>
@@ -76,6 +82,8 @@
 
   <script type="text/babel" src="components/Icons.js"></script>
   <script type="text/babel" src="components/FontSizeButton.js"></script>
+  <script type="text/babel" src="components/ShareScopePicker.js"></script>
+  <script type="text/babel" src="components/ShareScopeEditor.js"></script>
   <script type="text/babel" src="components/UndoToastHost.js"></script>
   <script type="text/babel" src="components/MemberListPanel.js"></script>
   <script type="text/babel" src="components/NicknamePrompt.js"></script>
