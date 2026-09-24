@@ -1,0 +1,15 @@
+// 把這份規則貼到 Firebase Console -> Storage -> 規則(Rules) 分頁，取代預設內容，然後按「發布」。
+// 同樣是原型階段的寬鬆規則：登入（含匿名）就能上傳/讀取，並限制單檔最大 10MB、只能是圖片。
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /trips/{tripId}/{allPaths=**} {
+      allow read, write: if request.auth != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow read: if request.auth != null;
+    }
+  }
+}

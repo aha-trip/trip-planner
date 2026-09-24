@@ -1,0 +1,51 @@
+// 把這份規則貼到 Firebase Console -> Firestore Database -> 規則(Rules) 分頁，取代預設內容，然後按「發布」。
+//
+// 每趟行程有一個 accessMode 欄位（沒有這欄的舊行程視為 "link"）：
+//   "link"   有登入（含匿名登入）就能讀寫 = 拿到分享連結的人都能編輯
+//   "google" 任何有登入的人都能「讀」，但只有「用 Google 登入」的人能「寫」
+// 只有建立者（trips 文件裡的 creatorUid）能切換 accessMode。
+//
+// 注意：這不是嚴格的私人行程。tripId 本身就是連結的一部分，知道連結的人在兩種模式下都看得到內容。
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isGoogleUser() {
+      return request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // 這個行程資料（文件內容）目前允許這個使用者寫入嗎？
+    function tripAllowsWrite(trip) {
+      return trip.get('accessMode', 'link') != 'google' || isGoogleUser();
+    }
+
+    match /trips/{tripId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+
+      allow update: if signedIn()
+        && tripAllowsWrite(resource.data)
+        // 建立者帳號一旦記錄就不能被改掉
+        && (!('creatorUid' in resource.data)
+            || request.resource.data.get('creatorUid', null) == resource.data.creatorUid)
+        // 切換編輯權限只有建立者可以
+        && (!('creatorUid' in resource.data)
+            || request.resource.data.get('accessMode', 'link') == resource.data.get('accessMode', 'link')
+            || request.auth.uid == resource.data.creatorUid);
+
+      allow delete: if signedIn() && tripAllowsWrite(resource.data);
+
+      match /{subcollection}/{docId} {
+        allow read: if signedIn();
+        allow write: if signedIn()
+          && tripAllowsWrite(get(/databases/$(database)/documents/trips/$(tripId)).data);
+      }
+    }
+  }
+}

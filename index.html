@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>旅遊規劃</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: "#fef6ee",
+              100: "#fdead4",
+              200: "#fad3a8",
+              300: "#f6b571",
+              400: "#f19540",
+              500: "#e97a24",
+              600: "#d4611a",
+              700: "#b04c17",
+              800: "#8d3d19",
+              900: "#733417",
+            },
+            cream: "#fbf4e6",
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body>
+  <div id="root">
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-family:sans-serif;">
+      載入中...
+    </div>
+  </div>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Firebase (compat SDK，掛在全域 `firebase` 物件上) -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
+
+  <!-- 專案設定與純 JS 工具（沒有 JSX，不需要 Babel） -->
+  <script src="config.js"></script>
+  <script src="lib/ids.js"></script>
+  <script src="lib/deviceId.js"></script>
+  <script src="lib/undoToast.js"></script>
+  <script src="lib/localBackend.js"></script>
+  <script src="lib/cloudinaryStorage.js"></script>
+  <script src="firebase.js"></script>
+  <script src="lib/mapsLink.js"></script>
+  <script src="lib/dates.js"></script>
+  <script src="lib/time.js"></script>
+  <script src="lib/places.js"></script>
+  <script src="lib/directions.js"></script>
+  <script src="lib/weather.js"></script>
+  <script src="lib/privateShopping.js"></script>
+  <script src="lib/visibility.js"></script>
+  <script src="lib/recentTrips.js"></script>
+  <script src="hooks/useLocalIdentity.js"></script>
+  <script src="hooks/useAuth.js"></script>
+  <script src="hooks/useCollection.js"></script>
+  <script src="hooks/usePrivateShoppingItems.js"></script>
+  <script src="hooks/useFontScale.js"></script>
+  <script src="hooks/useAutoHideHeader.js"></script>
+
+  <!-- Babel Standalone：讓瀏覽器直接讀懂下面這些含 JSX 的檔案，不需要建置流程 -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" src="components/Icons.js"></script>
+  <script type="text/babel" src="components/FontSizeButton.js"></script>
+  <script type="text/babel" src="components/UndoToastHost.js"></script>
+  <script type="text/babel" src="components/MemberListPanel.js"></script>
+  <script type="text/babel" src="components/NicknamePrompt.js"></script>
+  <script type="text/babel" src="components/GoogleRequiredPrompt.js"></script>
+  <script type="text/babel" src="components/AccountButton.js"></script>
+  <script type="text/babel" src="components/Home.js"></script>
+  <script type="text/babel" src="components/ImageLightbox.js"></script>
+  <script type="text/babel" src="components/ShoppingItemCard.js"></script>
+  <script type="text/babel" src="components/AddShoppingItemForm.js"></script>
+  <script type="text/babel" src="components/LinkedShoppingMiniList.js"></script>
+  <script type="text/babel" src="components/ShoppingPage.js"></script>
+  <script type="text/babel" src="components/AddWishlistItemForm.js"></script>
+  <script type="text/babel" src="components/WishlistItemCard.js"></script>
+  <script type="text/babel" src="components/WishlistPage.js"></script>
+  <script type="text/babel" src="components/TravelSegment.js"></script>
+  <script type="text/babel" src="components/DayWeatherBanner.js"></script>
+  <script type="text/babel" src="components/ItineraryItemCard.js"></script>
+  <script type="text/babel" src="components/DayColumn.js"></script>
+  <script type="text/babel" src="components/DayTabWeather.js"></script>
+  <script type="text/babel" src="components/DayTabs.js"></script>
+  <script type="text/babel" src="components/ItineraryPage.js"></script>
+  <script type="text/babel" src="components/TripPrintView.js"></script>
+  <script type="text/babel" src="components/TripLayout.js"></script>
+  <script type="text/babel" src="App.js"></script>
+</body>
+</html>
