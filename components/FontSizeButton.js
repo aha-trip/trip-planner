@@ -12,7 +12,7 @@ function FontSizeButton() {
     <div
       role="group"
       aria-label="調整字體大小"
-      className="shrink-0 h-10 flex items-center rounded-full border border-amber-200 bg-white overflow-hidden"
+      className="shrink-0 h-8 flex items-center rounded-full border border-amber-200 bg-white overflow-hidden"
     >
       <button
         type="button"
@@ -20,20 +20,20 @@ function FontSizeButton() {
         disabled={level <= 0}
         aria-label="縮小字體"
         title="縮小字體"
-        className="w-10 h-10 flex items-center justify-center font-bold text-slate-600 disabled:opacity-30 active:bg-amber-50"
+        className="w-8 h-8 flex items-center justify-center font-bold text-slate-600 disabled:opacity-30 active:bg-amber-50"
       >
-        <span style={{ fontSize: "13px" }}>A</span>
+        <span style={{ fontSize: "11px" }}>A</span>
       </button>
-      <span className="w-px h-5 bg-amber-200" />
+      <span className="w-px h-4 bg-amber-200" />
       <button
         type="button"
         onClick={function () { step(1); }}
         disabled={level >= levels.length - 1}
         aria-label="放大字體"
         title="放大字體"
-        className="w-10 h-10 flex items-center justify-center font-bold text-slate-700 disabled:opacity-30 active:bg-amber-50"
+        className="w-8 h-8 flex items-center justify-center font-bold text-slate-700 disabled:opacity-30 active:bg-amber-50"
       >
-        <span style={{ fontSize: "22px" }}>A</span>
+        <span style={{ fontSize: "17px" }}>A</span>
       </button>
     </div>
   );

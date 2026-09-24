@@ -120,3 +120,13 @@ function GlobeIcon({ className }) {
     </svg>
   );
 }
+
+function MenuIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4,6.6 C8,6.2 15,6.9 20,6.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4,12.2 C9,12.7 15,11.7 20,12.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M4,17.7 C8,17.2 14,18 20,17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}

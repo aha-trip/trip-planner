@@ -23,6 +23,7 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
   function handleFileChange(e) {
     const f = e.target.files && e.target.files[0];
     if (f) setFile(f);
+    e.target.value = ""; // 讓同一張照片移除後還能再選一次
   }
 
   function handlePaste(e) {
@@ -50,16 +51,19 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
     setUploading(true);
     setError(null);
     try {
+      // 手機相簿的照片常常很大，先縮圖再上傳/儲存，不然容易超過上傳大小上限或本機儲存空間
+      const photo = await compressImage(file);
       if (shareMode === "private") {
-        await addPrivateShoppingItem(tripId, file, {
+        await addPrivateShoppingItem(tripId, photo, {
           caption: caption.trim(),
           linkedWishlistItemId: linkedId || null,
           addedBy: nickname || "匿名",
         });
       } else {
-        const path = "trips/" + tripId + "/shopping/" + generateId(12) + "-" + file.name;
+        const safeName = (photo.name || "photo.jpg").replace(/[^\w.\-]/g, "_");
+        const path = "trips/" + tripId + "/shopping/" + generateId(12) + "-" + safeName;
         const ref = storage.ref(path);
-        await ref.put(file);
+        await ref.put(photo);
         const imageUrl = await ref.getDownloadURL();
 
         await db.collection("trips/" + tripId + "/shoppingItems").add({
@@ -80,7 +84,8 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
       if (onDone) onDone();
     } catch (err) {
       console.error(err);
-      setError("新增失敗，請稍後再試。");
+      const detail = err && (err.message || err.code);
+      setError("新增失敗" + (detail ? "：" + detail : "，請稍後再試。"));
     } finally {
       setUploading(false);
     }

@@ -1,6 +1,6 @@
 // 標題列的帳號按鈕：沒登入時顯示「Google 登入」，登入後顯示頭像，點一下可登出。
 // 本機試玩模式沒有帳號系統，整個不顯示。
-function AccountButton() {
+function AccountButton({ row }) {
   const { user, isGoogle } = useAuth();
   if (!usingRealFirebase) return null;
 
@@ -17,6 +17,26 @@ function AccountButton() {
   function handleSignOut() {
     if (!window.confirm("登出「" + user.displayName + "」？（登出後回到匿名身分）")) return;
     signOutUser();
+  }
+
+  if (row) {
+    const rowClass = "w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50";
+    if (isGoogle) {
+      return (
+        <button onClick={handleSignOut} className={rowClass}>
+          <span className="shrink-0 w-6 h-6 rounded-full overflow-hidden bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center">
+            {user.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : (user.displayName || "?").charAt(0).toUpperCase()}
+          </span>
+          <span className="truncate">登出（{user.displayName}）</span>
+        </button>
+      );
+    }
+    return (
+      <button onClick={handleSignIn} className={rowClass}>
+        <span className="shrink-0 w-6 h-6 rounded-full border border-amber-200 text-brand-700 text-xs font-bold flex items-center justify-center">G</span>
+        <span>用 Google 登入</span>
+      </button>
+    );
   }
 
   if (isGoogle) {
