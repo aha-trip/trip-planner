@@ -38,6 +38,15 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
     setPanel(null);
   }
 
+  async function handleMoveToDay() {
+    const d = otherDay || otherDays[0];
+    if (!d) return;
+    await updateField({ date: d, order: Date.now(), arrivalTime: null, departureTime: null, travelTimeMinutes: null, travelTimeSource: "auto" });
+    showUndoToast("已搬到 " + d, function () {
+      updateField({ date: item.date, order: item.order, arrivalTime: item.arrivalTime || null, departureTime: item.departureTime || null, travelTimeMinutes: item.travelTimeMinutes == null ? null : item.travelTimeMinutes, travelTimeSource: item.travelTimeSource || "auto" });
+    });
+  }
+
   if (!wishlistItem) return null;
 
   const actionClass = function (active) {
@@ -107,7 +116,7 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
           <div className="flex flex-wrap gap-2 mt-3">
             {otherDays.length > 0 && (
               <button onClick={function () { setPanel(panel === "otherDay" ? null : "otherDay"); }} className={actionClass(panel === "otherDay")}>
-                ＋ 其他天
+                搬／加到其他天
               </button>
             )}
             {allWishlist && (
@@ -139,7 +148,8 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
               >
                 {otherDays.map(function (d) { return <option key={d} value={d}>{d}</option>; })}
               </select>
-              <button onClick={handleAddOtherDay} className="min-h-[40px] text-sm rounded-lg bg-brand-600 text-white px-4">加入</button>
+              <button onClick={handleMoveToDay} className="min-h-[40px] text-sm rounded-lg bg-brand-600 text-white px-3">搬到這天</button>
+              <button onClick={handleAddOtherDay} className="min-h-[40px] text-sm rounded-lg border border-brand-600 text-brand-700 px-3">也加一份到這天</button>
             </div>
           )}
 
