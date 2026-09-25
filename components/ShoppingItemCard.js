@@ -24,8 +24,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
     });
   }
 
-  async function handleChangeLink(e) {
-    const value = e.target.value;
+  async function handleChangeLink(value) {
     if (isPrivate) {
       updatePrivateShoppingItem(tripId, item.id, { linkedWishlistItemId: value || null });
     } else {
@@ -106,7 +105,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
             onClick={function () { setCaptionDraft(item.caption || ""); setEditingCaption(true); }}
             title="點一下編輯備註"
           >
-            {item.caption || <span className="text-slate-300">＋ 加備註</span>}
+            {item.caption ? <LinkifiedText text={item.caption} /> : <span className="text-slate-300">＋ 加備註</span>}
           </p>
         ) : (
           <input
@@ -132,26 +131,19 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
         </button>
 
         <div className="mt-1">
-          {!changingLink ? (
-            <button
-              className="min-h-[36px] text-xs text-brand-600 inline-flex items-center gap-1"
-              onClick={function () { setChangingLink(true); }}
-            >
-              {linkedWishlist ? (<><PinIcon className="w-3 h-3" /> {linkedWishlist.name}</>) : "＋ 連結地點"}
-            </button>
-          ) : (
-            <select
-              autoFocus
-              className="text-base rounded border border-amber-200 px-2 py-1.5"
-              defaultValue={item.linkedWishlistItemId || ""}
-              onChange={handleChangeLink}
-              onBlur={function () { setChangingLink(false); }}
-            >
-              <option value="">不連結地點</option>
-              {(wishlistItems || []).map(function (w) {
-                return <option key={w.id} value={w.id}>{w.name}</option>;
-              })}
-            </select>
+          <button
+            className="min-h-[36px] text-xs text-brand-600 inline-flex items-center gap-1"
+            onClick={function () { setChangingLink(true); }}
+          >
+            {linkedWishlist ? (<><PinIcon className="w-3 h-3" /> {linkedWishlist.name}</>) : "＋ 連結地點"}
+          </button>
+          {changingLink && (
+            <WishlistPicker
+              items={wishlistItems}
+              value={item.linkedWishlistItemId || ""}
+              onPick={handleChangeLink}
+              onClose={function () { setChangingLink(false); }}
+            />
           )}
         </div>
 

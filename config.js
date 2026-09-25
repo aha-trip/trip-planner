@@ -20,6 +20,8 @@ const CONFIG = {
     cloudName: "deild3a6",
     uploadPreset: "wsjoqisv",
   },
+  // Google 登入用的「Web 用戶端 ID」（手機登入必填，見 SETUP.md）。Firebase Console -> Authentication -> 登入方式 -> Google -> Web SDK 設定 裡找得到
+  googleClientId: "940853643787-4s4fr10vepnu0g0sgmheeu6i790kji27.apps.googleusercontent.com",
   googleMapsApiKey: "",
   openWeatherApiKey: "0037dd28a550d71e31a947738b8b30cc",
 };

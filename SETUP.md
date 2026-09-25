@@ -73,3 +73,20 @@
 - 用 Cloudinary 存截圖時，「刪除購物項目」只會讓 App 裡看不到，Cloudinary 上的圖片檔案本身不會真的被刪除（免登入上傳沒辦法安全地做遠端刪除），免費額度通常很夠用，不影響正常使用
 - 願望清單/行程/購物清單的「刪除」都是軟刪除（標記隱藏 + 5 秒內可復原），資料庫裡其實還留著，不會真的清掉，所以資料量只會增加不會減少（對這個原型的使用規模不影響，但長期用量很大的話資料庫會慢慢變大）
 - 「成員名單」是依暱稱記錄，沒登入的人清瀏覽器資料或換裝置會被當成新成員；用 Google 登入的話名稱固定用 Google 名稱。「建立者」身分綁在建立行程的那台裝置與帳號上（沒登入 Google 就清瀏覽器資料會失去管理權限，建議建立者用 Google 登入）
+
+## Google 登入在手機上失敗（"missing initial state"）怎麼辦
+
+手機瀏覽器會把不同網域的儲存空間隔開，Firebase 內建的 Google 登入視窗在 `github.io` 這種「網站網址 ≠ Firebase 網域」的情況下會出現 `Unable to process request due to missing initial state`。App 已經改成用 Google 官方的 Identity Services 直接登入（不經過 Firebase 的中繼頁），但需要你做這兩步設定：
+
+1. **填 `googleClientId`**：Firebase Console -> Authentication -> 登入方式 -> Google -> 展開「Web SDK 設定」-> 複製「Web 用戶端 ID」（長得像 `123456-abc.apps.googleusercontent.com`），貼到 [config.js](config.js) 的 `googleClientId`
+2. **授權你的網站網址**：打開 https://console.cloud.google.com/apis/credentials ，上方選跟 Firebase 同一個專案 -> 點「Web client (auto created by Google Service)」-> 「已授權的 JavaScript 來源」-> 新增你網站的網址（例如 `https://你的帳號.github.io`，只要網域，不含後面路徑）-> 儲存（可能要等幾分鐘生效）
+
+沒填 `googleClientId` 的話會退回原本的登入方式（電腦通常沒問題，手機可能失敗）。LINE／Facebook／Instagram 等 App 內建瀏覽器 Google 一律不允許登入，需要用 Chrome／Safari 開啟。
+
+## 「打開過的行程」跟著 Google 帳號走
+
+用 Google 登入後，打開過的行程會同步到雲端（`users/你的帳號/trips`），換電腦或手機登入同一個帳號，首頁就看得到。**需要重新發布一次 [firestore.rules.txt](firestore.rules.txt)**（多了 `users/{userId}/trips` 這段規則），沒發布的話同步會被擋下、只會顯示這個瀏覽器自己打開過的。只有「登入之後」打開過的行程會被記錄，登入前打開過的會在你登入後第一次回首頁時，把「這台裝置上有的」補上去。
+
+## 匯出願望清單到 Google 地圖
+
+Google 地圖「已儲存」裡的清單沒有公開 API 可以自動建立或寫入。目前提供兩個官方支援的方式：願望清單頁的「匯出到 Google 地圖」下載 CSV，匯入 Google My Maps 一次建出整張地圖；或每個地點卡片上的「在 Google 地圖開啟／儲存到清單」，開啟後自己按「儲存」選清單。

@@ -62,6 +62,12 @@ function TripLayout({ tripId, activeTab }) {
     db.doc("trips/" + tripId).update({ creatorUid: uid }).catch(function (err) { console.error(err); });
   }, [tripId, uid, trip && trip.creatorUid, trip && trip.creatorDeviceId]);
 
+  // 用 Google 登入時，把這趟行程記進帳號的「打開過的行程」，換裝置登入也看得到
+  React.useEffect(function () {
+    if (!trip || !uid || !auth.isGoogle) return;
+    saveRecentTripToCloud(uid, tripId, { name: trip.name, destination: trip.destination || "" });
+  }, [tripId, uid, auth.isGoogle, trip && trip.name, trip && trip.destination]);
+
   function copyShareLink() {
     const url = window.location.origin + window.location.pathname + "#/trip/" + tripId + "/wishlist";
     navigator.clipboard

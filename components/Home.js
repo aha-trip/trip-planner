@@ -1,6 +1,10 @@
 // 首頁：列出之前建立/打開過的行程，也能建立新行程
 function Home() {
-  const [recentTrips] = React.useState(function () { return getRecentTrips(); });
+  const auth = useAuth();
+  const [localTrips] = React.useState(function () { return getRecentTrips(); });
+  const cloudUid = auth.isGoogle ? auth.user.uid : null;
+  const { data: cloudTrips, loading: cloudLoading } = useCollection(cloudUid ? "users/" + cloudUid + "/trips" : null);
+  const recentTrips = mergeRecentTrips(localTrips, cloudTrips);
   const [name, setName] = React.useState("");
   const [destination, setDestination] = React.useState("");
   const [startDate, setStartDate] = React.useState("");
@@ -8,6 +12,16 @@ function Home() {
   const [creating, setCreating] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [showForm, setShowForm] = React.useState(recentTrips.length === 0);
+
+  // 剛用 Google 登入時，把這台裝置上打開過、但雲端還沒有的行程補上去
+  React.useEffect(function () {
+    if (!cloudUid || cloudLoading) return;
+    const cloudIds = {};
+    cloudTrips.forEach(function (t) { cloudIds[t.id] = true; });
+    localTrips.forEach(function (t) {
+      if (!cloudIds[t.tripId]) saveRecentTripToCloud(cloudUid, t.tripId, t);
+    });
+  }, [cloudUid, cloudLoading]);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -57,7 +71,9 @@ function Home() {
     e.stopPropagation();
     if (!window.confirm("從這份清單移除？（不會刪除行程本身，之後還是可以用連結打開）")) return;
     removeRecentTrip(tripId);
-    window.location.reload();
+    Promise.resolve(cloudUid ? removeRecentTripFromCloud(cloudUid, tripId) : null).then(function () {
+      window.location.reload();
+    });
   }
 
   return (

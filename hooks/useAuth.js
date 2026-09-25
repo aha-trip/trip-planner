@@ -24,17 +24,58 @@ if (usingRealFirebase) {
   firebase.auth().onAuthStateChanged(notifyAuthSubscribers);
 }
 
+// LINE / Facebook / Instagram 等 App 內建瀏覽器，Google 一律不給登入
+function isInAppBrowser() {
+  return /Line\/|FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent || "");
+}
+
+// 用 Google Identity Services 直接拿 access token，不經過 Firebase 的 firebaseapp.com 中繼頁。
+// 手機瀏覽器（Safari/Chrome）會把不同網域的 sessionStorage 隔開，Firebase 內建的 popup/redirect 登入
+// 在 github.io 這種「App 網域 ≠ authDomain」的情況下會出現 "missing initial state" 錯誤。
+// 注意：這個函式要在使用者點擊的當下「同步」呼叫 requestAccessToken，不然手機會擋彈出視窗。
+function requestGoogleAccessToken() {
+  return new Promise(function (resolve, reject) {
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: CONFIG.googleClientId,
+      scope: "openid email profile",
+      callback: function (resp) {
+        if (resp.error) reject(Object.assign(new Error(resp.error), { code: "auth/" + resp.error }));
+        else resolve(resp.access_token);
+      },
+      error_callback: function (e) {
+        const code = e.type === "popup_closed" ? "auth/popup-closed-by-user"
+          : e.type === "popup_failed_to_open" ? "auth/popup-blocked"
+          : "auth/gis-" + e.type;
+        reject(Object.assign(new Error(e.type || "google-signin-error"), { code: code }));
+      },
+    });
+    client.requestAccessToken({ prompt: "select_account" });
+  });
+}
+
 async function signInWithGoogle() {
   if (!usingRealFirebase) throw new Error("本機試玩模式沒有 Google 登入");
+  if (isInAppBrowser()) throw Object.assign(new Error("in-app"), { code: "auth/in-app-browser" });
   const auth = firebase.auth();
-  const provider = new firebase.auth.GoogleAuthProvider();
   const current = auth.currentUser;
+  const useGis = Boolean(CONFIG.googleClientId) && window.google && window.google.accounts && window.google.accounts.oauth2;
   try {
-    if (current && current.isAnonymous) {
-      // 把目前的匿名身分升級成 Google 帳號：uid 不變，之前的建立者身分和資料都保留
-      await current.linkWithPopup(provider);
+    if (useGis) {
+      const accessToken = await requestGoogleAccessToken();
+      const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
+      if (current && current.isAnonymous) {
+        await current.linkWithCredential(credential);
+      } else {
+        await auth.signInWithCredential(credential);
+      }
     } else {
-      await auth.signInWithPopup(provider);
+      const provider = new firebase.auth.GoogleAuthProvider();
+      if (current && current.isAnonymous) {
+        // 把目前的匿名身分升級成 Google 帳號：uid 不變，之前的建立者身分和資料都保留
+        await current.linkWithPopup(provider);
+      } else {
+        await auth.signInWithPopup(provider);
+      }
     }
   } catch (err) {
     if (err.code === "auth/credential-already-in-use" && err.credential) {
@@ -72,6 +113,8 @@ function useAuth() {
 function describeAuthError(err) {
   const code = err && err.code;
   if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return null;
+  if (code === "auth/in-app-browser") return "這個內建瀏覽器（LINE／Facebook／Instagram 等）Google 不允許登入，請點右上角選單「用瀏覽器開啟」，改用 Chrome 或 Safari 再登入。";
+  if (code === "auth/access_denied") return null;
   if (code === "auth/popup-blocked") return "瀏覽器擋掉了登入視窗，請允許這個網站的彈出視窗後再試一次。";
   if (code === "auth/unauthorized-domain") return "這個網址還沒加進 Firebase 的「授權網域」，請照 SETUP.md 設定。";
   if (code === "auth/operation-not-allowed") return "Firebase 還沒啟用 Google 登入，請照 SETUP.md 設定。";

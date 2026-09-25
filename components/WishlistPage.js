@@ -8,6 +8,8 @@ function WishlistPage({ tripId, trip, nickname }) {
   const { data: itineraryItems } = useCollection("trips/" + tripId + "/itineraryItems");
   const [search, setSearch] = React.useState("");
   const [categoryFilter, setCategoryFilter] = React.useState("all");
+  const [expandedId, setExpandedId] = React.useState(null);
+  const [showMapsHelp, setShowMapsHelp] = React.useState(false);
 
   const allItems = rawItems.filter(function (i) { return !i.deletedAt; });
 
@@ -49,6 +51,26 @@ function WishlistPage({ tripId, trip, nickname }) {
         </h2>
 
         {allItems.length > 0 && (
+          <div className="mb-3">
+            <button
+              onClick={function () { downloadWishlistCsv(allItems, trip.name); setShowMapsHelp(true); }}
+              className="min-h-[40px] px-3 rounded-lg border border-amber-200 bg-white text-sm text-brand-700 inline-flex items-center gap-1.5 active:bg-amber-50"
+            >
+              <PinIcon className="w-4 h-4" /> 匯出到 Google 地圖
+            </button>
+            {showMapsHelp && (
+              <ol className="mt-2 text-xs text-slate-600 bg-white/80 border border-amber-100 rounded-lg p-3 space-y-1 list-decimal list-inside">
+                <li>已下載「願望清單.csv」</li>
+                <li>用電腦開 <a href="https://www.google.com/maps/d/" target="_blank" rel="noopener noreferrer" className="text-brand-600 underline">Google My Maps</a>，點「建立新地圖」</li>
+                <li>點「匯入」，選剛下載的檔案；位置選「緯度／經度」（沒有的用「地址」），標題選「名稱」</li>
+                <li>完成後在手機 Google 地圖 App →「已儲存」→「地圖」就看得到整張地圖</li>
+                <li>只想存單一地點：每張卡片上的「在 Google 地圖開啟／儲存到清單」，開了之後按「儲存」選你自己的清單</li>
+              </ol>
+            )}
+          </div>
+        )}
+
+        {allItems.length > 0 && (
           <div className="space-y-2 mb-3">
             <input
               className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
@@ -88,11 +110,16 @@ function WishlistPage({ tripId, trip, nickname }) {
             return (
               <WishlistItemCard
                 key={item.id}
+                expanded={expandedId === item.id}
+                onToggle={function () { setExpandedId(expandedId === item.id ? null : item.id); }}
                 tripId={tripId}
                 item={item}
                 isScheduled={Boolean(scheduledDatesByItem[item.id])}
                 scheduledDates={scheduledDatesByItem[item.id] || []}
                 dayList={dayList}
+                allItems={allItems}
+                scheduledDatesByItem={scheduledDatesByItem}
+                destination={trip.destination}
                 nickname={nickname}
               />
             );

@@ -25,6 +25,11 @@ service cloud.firestore {
       return trip.get('accessMode', 'link') != 'google' || isGoogleUser();
     }
 
+    // 每個 Google 帳號自己的「打開過的行程」清單，只有本人（用 Google 登入）能讀寫
+    match /users/{userId}/trips/{tripId} {
+      allow read, write: if signedIn() && request.auth.uid == userId && isGoogleUser();
+    }
+
     match /trips/{tripId} {
       allow read: if signedIn();
       allow create: if signedIn();

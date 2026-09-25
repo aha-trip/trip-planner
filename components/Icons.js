@@ -130,3 +130,12 @@ function MenuIcon({ className }) {
     </svg>
   );
 }
+
+function PencilIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.5,19.6 L5.2,15.3 C10,10.4 14,6.4 16.4,4.2 C17.2,3.6 18.3,3.7 19,4.5 C19.7,5.3 19.7,6.4 19,7.1 C16.6,9.6 12.6,13.6 8.6,18.6 Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M14.2,6.8 L17.3,9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

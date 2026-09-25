@@ -7,6 +7,7 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
   const [shareMode, setShareMode] = React.useState("everyone"); // 'everyone' | 'specific' | 'private'
   const [selectedMembers, setSelectedMembers] = React.useState([]);
   const [uploading, setUploading] = React.useState(false);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
   const [error, setError] = React.useState(null);
 
 
@@ -141,16 +142,28 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
       />
 
       {!linkedWishlistItemId && wishlistItems && wishlistItems.length > 0 && (
-        <select
-          className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-          value={linkedId}
-          onChange={function (e) { setLinkedId(e.target.value); }}
-        >
-          <option value="">不連結地點</option>
-          {wishlistItems.map(function (w) {
-            return <option key={w.id} value={w.id}>{w.name}</option>;
-          })}
-        </select>
+        <>
+          <button
+            type="button"
+            onClick={function () { setPickerOpen(true); }}
+            className="w-full min-h-[44px] rounded-lg border border-amber-200 px-3 text-left text-sm bg-white flex items-center justify-between gap-2"
+          >
+            <span className={"truncate " + (linkedId ? "text-slate-800" : "text-slate-500")}>
+              {linkedId
+                ? (wishlistItems.filter(function (w) { return w.id === linkedId; })[0] || { name: "（已刪除的地點）" }).name
+                : "連結地點（選填，可搜尋）"}
+            </span>
+            <span className="text-slate-400 shrink-0">›</span>
+          </button>
+          {pickerOpen && (
+            <WishlistPicker
+              items={wishlistItems}
+              value={linkedId}
+              onPick={function (id) { setLinkedId(id); setPickerOpen(false); }}
+              onClose={function () { setPickerOpen(false); }}
+            />
+          )}
+        </>
       )}
 
       <ShareScopePicker
