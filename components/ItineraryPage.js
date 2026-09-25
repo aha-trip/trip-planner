@@ -10,6 +10,13 @@ function ItineraryPage({ tripId, trip, nickname }) {
     .forEach(function (w) { wishlistById[w.id] = w; });
 
   const dayList = getTripDayList(trip, itineraryItems);
+  const allWishlist = rawWishlistItems.filter(function (w) { return !w.deletedAt; });
+  const scheduledDatesByItem = {};
+  itineraryItems.forEach(function (i) {
+    if (!scheduledDatesByItem[i.wishlistItemId]) scheduledDatesByItem[i.wishlistItemId] = [];
+    scheduledDatesByItem[i.wishlistItemId].push(i.date);
+  });
+  Object.keys(scheduledDatesByItem).forEach(function (id) { scheduledDatesByItem[id].sort(); });
 
   const dayLocations = {};
   dayList.forEach(function (date) {
@@ -60,6 +67,9 @@ function ItineraryPage({ tripId, trip, nickname }) {
         wishlistById={wishlistById}
         trip={trip}
         nickname={nickname}
+        dayList={dayList}
+        allWishlist={allWishlist}
+        scheduledDatesByItem={scheduledDatesByItem}
       />
     </div>
   );

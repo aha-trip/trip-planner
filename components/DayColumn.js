@@ -1,4 +1,5 @@
-function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname }) {
+function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname, dayList, allWishlist, scheduledDatesByItem }) {
+  const [expandedId, setExpandedId] = React.useState(null);
   const sorted = React.useMemo(function () {
     return itineraryItems
       .filter(function (i) { return i.date === date; })
@@ -107,6 +108,12 @@ function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname 
               onMoveUp={function () { handleMove(index, -1); }}
               onMoveDown={function () { handleMove(index, 1); }}
               nickname={nickname}
+              expanded={expandedId === item.id}
+              onToggle={function () { setExpandedId(expandedId === item.id ? null : item.id); }}
+              dayList={dayList}
+              allWishlist={allWishlist}
+              scheduledDatesByItem={scheduledDatesByItem}
+              destination={trip.destination}
             />
           </div>
         );
