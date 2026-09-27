@@ -1,6 +1,6 @@
 const CATEGORY_OPTIONS = ["sight", "food", "activity", "shopping", "other"];
 
-function AddWishlistItemForm({ tripId, nickname }) {
+function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
   const inputRef = React.useRef(null);
   const [name, setName] = React.useState("");
   const [address, setAddress] = React.useState("");
@@ -25,7 +25,7 @@ function AddWishlistItemForm({ tripId, nickname }) {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await db.collection("trips/" + tripId + "/wishlistItems").add({
+      const docRef = await db.collection("trips/" + tripId + "/wishlistItems").add({
         name: name.trim(),
         category: category,
         address: address.trim(),
@@ -41,6 +41,7 @@ function AddWishlistItemForm({ tripId, nickname }) {
       setAddress("");
       setCoords({ lat: null, lng: null, placeId: null });
       setNotes("");
+      if (onCreated) await onCreated(docRef.id);
     } catch (err) {
       console.error(err);
     } finally {
@@ -102,7 +103,7 @@ function AddWishlistItemForm({ tripId, nickname }) {
         disabled={saving || !name.trim()}
         className="w-full rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium py-2 transition"
       >
-        {saving ? "新增中..." : "加入願望清單"}
+        {saving ? "新增中..." : (submitLabel || "加入願望清單")}
       </button>
     </form>
   );

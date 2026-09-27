@@ -1,5 +1,5 @@
 // 精簡行程卡片：平常一列（時間＋名稱＋類別），點開才顯示細節與操作
-function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMoveUp, onMoveDown, nickname, expanded, onToggle, dayList, allWishlist, scheduledDatesByItem, destination }) {
+function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMoveUp, onMoveDown, nickname, expanded, onToggle, dayList, allWishlist, scheduledDatesByItem, destination, onDragHandleDown }) {
   const [editing, setEditing] = React.useState(false);
   const [panel, setPanel] = React.useState(null); // "otherDay" | "nearby" | null
   const otherDays = (dayList || []).filter(function (d) { return d !== item.date; });
@@ -58,22 +58,33 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
 
   return (
     <div className="bg-white rounded-xl border border-amber-100">
-      <button type="button" onClick={onToggle} className="w-full text-left px-3 py-2.5 flex items-center gap-2" aria-expanded={expanded}>
-        <span className="shrink-0 w-12 text-center leading-tight">
-          <span className="block text-sm font-semibold text-brand-700">{item.arrivalTime || "--:--"}</span>
-          <span className="block text-[10px] text-slate-400">{item.durationMinutes || 0} 分</span>
+      <div className="w-full flex items-center gap-1 pl-1 pr-3 py-1.5">
+        <span
+          onPointerDown={onDragHandleDown}
+          className="shrink-0 w-8 h-10 flex items-center justify-center text-slate-300 text-lg cursor-grab active:cursor-grabbing select-none"
+          style={{ touchAction: "none" }}
+          aria-label="按住拖曳排序"
+          title="按住拖曳排序"
+        >
+          ⠿
         </span>
-        <span className="min-w-0 flex-1">
-          <span className={"block font-semibold text-slate-800 " + (expanded ? "break-words" : "truncate")}>{wishlistItem.name}</span>
-          {wishlistItem.address && (
-            <span className={"block text-xs text-slate-500 " + (expanded ? "break-words" : "truncate")}>{wishlistItem.address}</span>
-          )}
-        </span>
-        <span className="shrink-0 text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">
-          {CATEGORY_LABELS[wishlistItem.category] || wishlistItem.category}
-        </span>
-        <span className="shrink-0 text-slate-400 text-sm">{expanded ? "▴" : "▾"}</span>
-      </button>
+        <button type="button" onClick={onToggle} className="min-w-0 flex-1 flex items-center gap-2 text-left py-1" aria-expanded={expanded}>
+          <span className="shrink-0 w-12 text-center leading-tight">
+            <span className="block text-sm font-semibold text-brand-700">{item.arrivalTime || "--:--"}</span>
+            <span className="block text-[10px] text-slate-400">{item.durationMinutes || 0} 分</span>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className={"block font-semibold text-slate-800 " + (expanded ? "break-words" : "truncate")}>{wishlistItem.name}</span>
+            {wishlistItem.address && (
+              <span className={"block text-xs text-slate-500 " + (expanded ? "break-words" : "truncate")}>{wishlistItem.address}</span>
+            )}
+          </span>
+          <span className="shrink-0 text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">
+            {CATEGORY_LABELS[wishlistItem.category] || wishlistItem.category}
+          </span>
+          <span className="shrink-0 text-slate-400 text-sm">{expanded ? "▴" : "▾"}</span>
+        </button>
+      </div>
 
       {expanded && (
         <div className="px-3 pb-3 border-t border-amber-50">

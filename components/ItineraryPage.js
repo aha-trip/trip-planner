@@ -24,6 +24,7 @@ function ItineraryPage({ tripId, trip, nickname }) {
   });
 
   const [activeDate, setActiveDate] = React.useState(null);
+  const [showAddForm, setShowAddForm] = React.useState(false);
 
   React.useEffect(function () {
     if (!activeDate && dayList.length > 0) {
@@ -60,6 +61,28 @@ function ItineraryPage({ tripId, trip, nickname }) {
         onSelect={setActiveDate}
         dayLocations={dayLocations}
       />
+      <div>
+        <button
+          type="button"
+          onClick={function () { setShowAddForm(!showAddForm); }}
+          className="min-h-[40px] inline-flex items-center gap-1 text-sm text-brand-700"
+        >
+          <PinIcon className="w-4 h-4" /> {showAddForm ? "收起 ▴" : "＋ 新增地點到這天 ▾"}
+        </button>
+        {showAddForm && (
+          <div className="mt-2">
+            <AddWishlistItemForm
+              tripId={tripId}
+              nickname={nickname}
+              submitLabel={"加入並排進 " + (activeDate || dayList[0]).slice(5)}
+              onCreated={async function (id) {
+                await addWishlistItemToDay(tripId, id, activeDate || dayList[0]);
+                setShowAddForm(false);
+              }}
+            />
+          </div>
+        )}
+      </div>
       <DayColumn
         tripId={tripId}
         date={activeDate || dayList[0]}
