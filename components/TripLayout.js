@@ -1,10 +1,13 @@
 const TABS = [
   { key: "wishlist", label: "願望清單" },
   { key: "itinerary", label: "行程" },
+  { key: "map", label: "地圖" },
+  { key: "expenses", label: "花費" },
+  { key: "packing", label: "行李" },
   { key: "shopping", label: "購物清單" },
 ];
 
-function TripLayout({ tripId, activeTab }) {
+function TripLayout({ tripId, activeTab, focusItemId }) {
   const { data: trip, loading } = useDocument("trips/" + tripId);
   const { nickname: localNickname, setNickname } = useLocalIdentity();
   const auth = useAuth();
@@ -15,6 +18,7 @@ function TripLayout({ tripId, activeTab }) {
   const [showMembers, setShowMembers] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const headerVisible = useAutoHideHeader();
+  const online = useOnlineStatus();
   // 用 callback ref 而不是 useRef+useEffect([])：因為載入中 (loading) 那個分支還沒有 <header>，
   // 如果用空依賴陣列的 useEffect，第一次執行時 ref 可能還是 null，之後就再也不會重新量測了。
   // callback ref 保證「DOM 節點真正掛上去的當下」一定會被呼叫到，不管是不是在第一次算染。
@@ -125,6 +129,11 @@ function TripLayout({ tripId, activeTab }) {
             🧪 本機試玩模式：資料只存在這個瀏覽器，還不會跟別人同步
           </div>
         )}
+        {!online && (
+          <div className="bg-slate-100 text-slate-600 text-xs text-center py-1 px-2">
+            📴 目前離線，顯示的是上次同步的資料；你的修改會先存在這台裝置上，恢復網路後自動同步
+          </div>
+        )}
         {locked && (
           <div className="bg-amber-50 text-amber-800 text-xs text-center py-1 px-2">
             🔒 這趟行程限 Google 登入者編輯，目前是唯讀，你的修改不會儲存
@@ -177,6 +186,9 @@ function TripLayout({ tripId, activeTab }) {
       <main className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === "wishlist" && <WishlistPage tripId={tripId} trip={trip} nickname={nickname} />}
         {activeTab === "itinerary" && <ItineraryPage tripId={tripId} trip={trip} nickname={nickname} />}
+        {activeTab === "map" && <MapPage tripId={tripId} trip={trip} nickname={nickname} focusItemId={focusItemId} />}
+        {activeTab === "expenses" && <ExpensesPage tripId={tripId} nickname={nickname} />}
+        {activeTab === "packing" && <PackingListPage tripId={tripId} nickname={nickname} />}
         {activeTab === "shopping" && <ShoppingPage tripId={tripId} nickname={nickname} />}
       </main>
 

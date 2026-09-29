@@ -1,4 +1,4 @@
-function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname, dayList, allWishlist, scheduledDatesByItem }) {
+function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname, dayList, allWishlist, scheduledDatesByItem, memberNames }) {
   const [expandedId, setExpandedId] = React.useState(null);
   const sorted = React.useMemo(function () {
     return itineraryItems
@@ -188,6 +188,7 @@ function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname,
                 allWishlist={allWishlist}
                 scheduledDatesByItem={scheduledDatesByItem}
                 destination={trip.destination}
+                memberNames={memberNames}
                 onDragHandleDown={function (e) { handleDragStart(item.id, e); }}
               />
             </div>

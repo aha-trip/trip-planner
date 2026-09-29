@@ -82,7 +82,25 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
             ✕
           </button>
         </div>
-        {item.caption && <p className="text-xs text-slate-500 truncate mt-1">{item.caption}</p>}
+        {!editingCaption ? (
+          <p
+            className="text-xs text-slate-500 truncate mt-1 cursor-text hover:bg-amber-50 rounded px-1 -mx-1 min-h-[20px]"
+            onClick={function (e) { e.stopPropagation(); setCaptionDraft(item.caption || ""); setEditingCaption(true); }}
+            title="點一下編輯備註"
+          >
+            {item.caption || <span className="text-slate-300">＋ 加備註</span>}
+          </p>
+        ) : (
+          <input
+            autoFocus
+            onClick={function (e) { e.stopPropagation(); }}
+            className="w-full text-xs rounded border border-amber-200 px-1.5 py-1 mt-1 focus:outline-none focus:ring-2 focus:ring-brand-400"
+            value={captionDraft}
+            onChange={function (e) { setCaptionDraft(e.target.value); }}
+            onBlur={handleSaveCaption}
+            onKeyDown={function (e) { if (e.key === "Enter") e.target.blur(); }}
+          />
+        )}
       </div>
     );
   }

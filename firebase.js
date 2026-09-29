@@ -20,6 +20,13 @@ if (usingRealFirebase) {
   firebase.initializeApp(CONFIG.firebase);
   db = firebase.firestore();
 
+  // 開啟離線快取：斷網時還能看到上次同步的行程資料，離線時的修改會先存在裝置上，
+  // 恢復網路後自動同步。開多個分頁/視窗只有一個能拿到快取鎖，另一個會失敗，屬正常現象，
+  // 忽略即可（那個分頁單純沒有離線快取，網路正常時完全不受影響）。
+  db.enablePersistence({ synchronizeTabs: true }).catch(function (err) {
+    console.warn("離線快取未啟用（多分頁鎖定或瀏覽器不支援）:", err.code);
+  });
+
   // 監聽器一直留著：沒有登入身分（第一次進來、或按了 Google 登出）就自動退回匿名登入，
   // 這樣「有連結就能編輯」的行程任何時候都能用。
   authReadyPromise = new Promise((resolve) => {

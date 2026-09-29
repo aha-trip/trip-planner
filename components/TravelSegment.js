@@ -52,6 +52,8 @@ function TravelSegment({ tripId, item, computing }) {
         <button onClick={resetToAuto} className="text-xs text-brand-600 hover:underline">
           改回自動計算
         </button>
+      ) : item.transportMode === "transit" && !CONFIG.googleMapsApiKey ? (
+        <span className="text-xs text-slate-400">大眾運輸沒有免費路線資料，請手動輸入</span>
       ) : (
         <span className="text-xs text-slate-400">自動計算</span>
       )}

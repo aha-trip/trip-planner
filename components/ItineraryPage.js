@@ -1,6 +1,8 @@
 function ItineraryPage({ tripId, trip, nickname }) {
   const { data: rawItineraryItems, loading } = useCollection("trips/" + tripId + "/itineraryItems");
   const { data: rawWishlistItems } = useCollection("trips/" + tripId + "/wishlistItems");
+  const { data: members } = useCollection("trips/" + tripId + "/members");
+  const memberNames = members.map(function (m) { return m.nickname; }).filter(Boolean);
 
   const itineraryItems = rawItineraryItems.filter(function (i) { return !i.deletedAt; });
 
@@ -25,6 +27,12 @@ function ItineraryPage({ tripId, trip, nickname }) {
 
   const [activeDate, setActiveDate] = React.useState(null);
   const [showAddForm, setShowAddForm] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState("day"); // "day" | "overview"
+
+  function goToDay(date) {
+    setActiveDate(date);
+    setViewMode("day");
+  }
 
   React.useEffect(function () {
     if (!activeDate && dayList.length > 0) {
@@ -46,7 +54,29 @@ function ItineraryPage({ tripId, trip, nickname }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={function () { setViewMode("day"); }}
+            className={
+              "min-h-[36px] px-3 rounded-lg text-sm border " +
+              (viewMode === "day" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 bg-white")
+            }
+          >
+            分天檢視
+          </button>
+          <button
+            type="button"
+            onClick={function () { setViewMode("overview"); }}
+            className={
+              "min-h-[36px] px-3 rounded-lg text-sm border " +
+              (viewMode === "overview" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 bg-white")
+            }
+          >
+            整趟總覽
+          </button>
+        </div>
         <a
           href={"#/trip/" + tripId + "/print"}
           className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline"
@@ -54,46 +84,61 @@ function ItineraryPage({ tripId, trip, nickname }) {
           <ReceiptIcon className="w-3.5 h-3.5" /> 列印／離線總覽
         </a>
       </div>
-      <DayTabs
-        tripId={tripId}
-        dayList={dayList}
-        activeDate={activeDate || dayList[0]}
-        onSelect={setActiveDate}
-        dayLocations={dayLocations}
-      />
-      <div>
-        <button
-          type="button"
-          onClick={function () { setShowAddForm(!showAddForm); }}
-          className="min-h-[40px] inline-flex items-center gap-1 text-sm text-brand-700"
-        >
-          <PinIcon className="w-4 h-4" /> {showAddForm ? "收起 ▴" : "＋ 新增地點到這天 ▾"}
-        </button>
-        {showAddForm && (
-          <div className="mt-2">
-            <AddWishlistItemForm
-              tripId={tripId}
-              nickname={nickname}
-              submitLabel={"加入並排進 " + (activeDate || dayList[0]).slice(5)}
-              onCreated={async function (id) {
-                await addWishlistItemToDay(tripId, id, activeDate || dayList[0]);
-                setShowAddForm(false);
-              }}
-            />
+
+      {viewMode === "overview" ? (
+        <ItineraryOverview
+          tripId={tripId}
+          dayList={dayList}
+          itineraryItems={itineraryItems}
+          wishlistById={wishlistById}
+          dayLocations={dayLocations}
+          onSelectDay={goToDay}
+        />
+      ) : (
+        <React.Fragment>
+          <DayTabs
+            tripId={tripId}
+            dayList={dayList}
+            activeDate={activeDate || dayList[0]}
+            onSelect={setActiveDate}
+            dayLocations={dayLocations}
+          />
+          <div>
+            <button
+              type="button"
+              onClick={function () { setShowAddForm(!showAddForm); }}
+              className="min-h-[40px] inline-flex items-center gap-1 text-sm text-brand-700"
+            >
+              <PinIcon className="w-4 h-4" /> {showAddForm ? "收起 ▴" : "＋ 新增地點到這天 ▾"}
+            </button>
+            {showAddForm && (
+              <div className="mt-2">
+                <AddWishlistItemForm
+                  tripId={tripId}
+                  nickname={nickname}
+                  submitLabel={"加入並排進 " + (activeDate || dayList[0]).slice(5)}
+                  onCreated={async function (id) {
+                    await addWishlistItemToDay(tripId, id, activeDate || dayList[0]);
+                    setShowAddForm(false);
+                  }}
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <DayColumn
-        tripId={tripId}
-        date={activeDate || dayList[0]}
-        itineraryItems={itineraryItems}
-        wishlistById={wishlistById}
-        trip={trip}
-        nickname={nickname}
-        dayList={dayList}
-        allWishlist={allWishlist}
-        scheduledDatesByItem={scheduledDatesByItem}
-      />
+          <DayColumn
+            tripId={tripId}
+            date={activeDate || dayList[0]}
+            itineraryItems={itineraryItems}
+            wishlistById={wishlistById}
+            trip={trip}
+            nickname={nickname}
+            dayList={dayList}
+            allWishlist={allWishlist}
+            scheduledDatesByItem={scheduledDatesByItem}
+            memberNames={memberNames}
+          />
+        </React.Fragment>
+      )}
     </div>
   );
 }

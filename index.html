@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
   <script>
     tailwind.config = {
       theme: {
@@ -35,6 +36,18 @@
     @media (max-width: 640px) { input, select, textarea { font-size: 16px !important; } }
     button, a { -webkit-tap-highlight-color: transparent; }
   </style>
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    // 註冊 Service Worker，讓 App 離線也能打開（見 sw.js）。放在 load 事件之後才註冊，
+    // 才不會佔用第一次載入的頻寬/時間。
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function (err) {
+          console.warn("Service Worker 註冊失敗:", err);
+        });
+      });
+    }
+  </script>
 </head>
 <body>
   <div id="root">
@@ -46,6 +59,9 @@
   <!-- React -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- 地圖（免費，不用金鑰，跟 Funliday 同款的 MapLibre GL 向量地圖引擎） -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
   <!-- Firebase (compat SDK，掛在全域 `firebase` 物件上) -->
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -68,11 +84,14 @@
   <script src="lib/directions.js"></script>
   <script src="lib/weather.js"></script>
   <script src="lib/privateShopping.js"></script>
+  <script src="lib/privatePacking.js"></script>
   <script src="lib/shoppingScope.js"></script>
   <script src="lib/imageCompress.js"></script>
   <script src="lib/exportMyMaps.js"></script>
   <script src="lib/geo.js"></script>
   <script src="lib/geocode.js"></script>
+  <script src="lib/currencies.js"></script>
+  <script src="lib/expenseCategories.js"></script>
   <script src="lib/itineraryActions.js"></script>
   <script src="lib/visibility.js"></script>
   <script src="lib/recentTrips.js"></script>
@@ -80,8 +99,10 @@
   <script src="hooks/useAuth.js"></script>
   <script src="hooks/useCollection.js"></script>
   <script src="hooks/usePrivateShoppingItems.js"></script>
+  <script src="hooks/usePrivatePackingItems.js"></script>
   <script src="hooks/useFontScale.js"></script>
   <script src="hooks/useAutoHideHeader.js"></script>
+  <script src="hooks/useOnlineStatus.js"></script>
 
   <!-- Babel Standalone：讓瀏覽器直接讀懂下面這些含 JSX 的檔案，不需要建置流程 -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -91,6 +112,8 @@
   <script type="text/babel" src="components/LinkifiedText.js"></script>
   <script type="text/babel" src="components/WishlistPicker.js"></script>
   <script type="text/babel" src="components/NearbyPanel.js"></script>
+  <script type="text/babel" src="components/CurrencyPicker.js"></script>
+  <script type="text/babel" src="components/ExpenseForm.js"></script>
   <script type="text/babel" src="components/HeaderMenu.js"></script>
   <script type="text/babel" src="components/ShareScopePicker.js"></script>
   <script type="text/babel" src="components/ShareScopeEditor.js"></script>
@@ -115,7 +138,11 @@
   <script type="text/babel" src="components/DayColumn.js"></script>
   <script type="text/babel" src="components/DayTabWeather.js"></script>
   <script type="text/babel" src="components/DayTabs.js"></script>
+  <script type="text/babel" src="components/ItineraryOverview.js"></script>
   <script type="text/babel" src="components/ItineraryPage.js"></script>
+  <script type="text/babel" src="components/MapPage.js"></script>
+  <script type="text/babel" src="components/ExpensesPage.js"></script>
+  <script type="text/babel" src="components/PackingListPage.js"></script>
   <script type="text/babel" src="components/TripPrintView.js"></script>
   <script type="text/babel" src="components/TripLayout.js"></script>
   <script type="text/babel" src="App.js"></script>

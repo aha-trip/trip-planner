@@ -72,21 +72,19 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
             <button onClick={function () { togglePanel("schedule"); }} className={actionClass(panel === "schedule")}>
               {isScheduled ? "＋ 其他天" : "＋ 排進行程"}
             </button>
-            {allItems && (
-              <button onClick={function () { togglePanel("nearby"); }} className={actionClass(panel === "nearby")}>
-                附近
-              </button>
-            )}
             <button onClick={function () { setEditing(true); }} className={actionClass(false) + " inline-flex items-center gap-1"}>
               <PencilIcon className="w-4 h-4" /> 編輯
             </button>
+            <a href={"#/trip/" + tripId + "/map/" + item.id} className={actionClass(false) + " inline-flex items-center gap-1"}>
+              <PinIcon className="w-4 h-4" /> 地圖上的附近地點
+            </a>
             <a
               href={buildPlaceLink(item)}
               target="_blank"
               rel="noopener noreferrer"
               className={actionClass(false) + " inline-flex items-center gap-1"}
             >
-              <PinIcon className="w-4 h-4" /> 地圖
+              <PinIcon className="w-4 h-4" /> 在 Google 地圖開啟
             </a>
           </div>
 
@@ -117,17 +115,6 @@ function WishlistItemCard({ tripId, item, isScheduled, scheduledDates, dayList, 
                 加入
               </button>
             </div>
-          )}
-
-          {panel === "nearby" && allItems && (
-            <NearbyPanel
-              tripId={tripId}
-              item={item}
-              allItems={allItems}
-              scheduledDatesByItem={scheduledDatesByItem || {}}
-              dayList={dayList}
-              destination={destination}
-            />
           )}
 
           <div className="mt-3">

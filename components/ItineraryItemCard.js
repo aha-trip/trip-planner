@@ -1,6 +1,7 @@
 // 精簡行程卡片：平常一列（時間＋名稱＋類別），點開才顯示細節與操作
-function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMoveUp, onMoveDown, nickname, expanded, onToggle, dayList, allWishlist, scheduledDatesByItem, destination, onDragHandleDown }) {
+function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMoveUp, onMoveDown, nickname, expanded, onToggle, dayList, allWishlist, scheduledDatesByItem, destination, memberNames, onDragHandleDown }) {
   const [editing, setEditing] = React.useState(false);
+  const [addingExpense, setAddingExpense] = React.useState(false);
   const [panel, setPanel] = React.useState(null); // "otherDay" | "nearby" | null
   const otherDays = (dayList || []).filter(function (d) { return d !== item.date; });
   const [otherDay, setOtherDay] = React.useState(otherDays[0] || "");
@@ -130,11 +131,12 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
                 搬／加到其他天
               </button>
             )}
-            {allWishlist && (
-              <button onClick={function () { setPanel(panel === "nearby" ? null : "nearby"); }} className={actionClass(panel === "nearby")}>
-                附近
-              </button>
-            )}
+            <a href={"#/trip/" + tripId + "/map/" + wishlistItem.id} className={actionClass(false) + " inline-flex items-center gap-1"}>
+              <PinIcon className="w-4 h-4" /> 地圖上的附近地點
+            </a>
+            <button onClick={function () { setAddingExpense(true); }} className={actionClass(false) + " inline-flex items-center gap-1"}>
+              <ReceiptIcon className="w-4 h-4" /> 記消費
+            </button>
             <button onClick={function () { setEditing(true); }} className={actionClass(false) + " inline-flex items-center gap-1"}>
               <PencilIcon className="w-4 h-4" /> 編輯
             </button>
@@ -164,17 +166,6 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
             </div>
           )}
 
-          {panel === "nearby" && allWishlist && (
-            <NearbyPanel
-              tripId={tripId}
-              item={wishlistItem}
-              allItems={allWishlist}
-              scheduledDatesByItem={scheduledDatesByItem || {}}
-              dayList={dayList || []}
-              destination={destination}
-            />
-          )}
-
           <div className="mt-3">
             <LinkedShoppingMiniList tripId={tripId} wishlistItemId={wishlistItem.id} nickname={nickname} />
           </div>
@@ -196,6 +187,15 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
       )}
 
       {editing && <WishlistEditor tripId={tripId} item={wishlistItem} onClose={function () { setEditing(false); }} />}
+      {addingExpense && (
+        <ExpenseForm
+          tripId={tripId}
+          nickname={nickname}
+          memberNames={memberNames}
+          defaults={{ linkedItineraryItemId: item.id, linkedWishlistItemId: wishlistItem.id, date: item.date, note: wishlistItem.name }}
+          onClose={function () { setAddingExpense(false); }}
+        />
+      )}
     </div>
   );
 }
