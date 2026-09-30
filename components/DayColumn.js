@@ -9,10 +9,15 @@ function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname,
 
   const [computing, setComputing] = React.useState(false);
 
+  // 排程演算法：index 0 永遠是「錨點」；其他項目只要使用者自己輸入過時間
+  // (arrivalTimeSource === "manual") 也會變成錨點。兩個錨點之間的項目用「回推」算——
+  // 從後面那個錨點往前推算每一項該幾點出發、幾點到，符合「我要幾點前到某地，前面幾站幾點該走」
+  // 的排程習慣；最後一個錨點之後沒有下一個限制，維持原本「往後累加」的算法。
   const signature = sorted
     .map(function (i) {
-      const manualTime = i.travelTimeSource === "manual" ? i.travelTimeMinutes : "";
-      return [i.id, i.order, i.transportMode, i.durationMinutes, i.travelTimeSource, manualTime].join(":");
+      const manualTravel = i.travelTimeSource === "manual" ? i.travelTimeMinutes : "";
+      const manualArrival = i.arrivalTimeSource === "manual" ? i.arrivalTime : "";
+      return [i.id, i.order, i.transportMode, i.durationMinutes, i.travelTimeSource, manualTravel, i.arrivalTimeSource, manualArrival].join(":");
     })
     .join("|") + "||first-arrival:" + (sorted[0] ? sorted[0].arrivalTime : "");
 
@@ -20,46 +25,65 @@ function DayColumn({ tripId, date, itineraryItems, wishlistById, trip, nickname,
     if (sorted.length === 0) return;
     let cancelled = false;
 
+    async function travelInto(j) {
+      // 算「第 j-1 項 -> 第 j 項」的交通時間；使用者自己鎖定過就不重算
+      const prev = sorted[j - 1];
+      const curr = sorted[j];
+      if (curr.travelTimeSource === "manual") return curr.travelTimeMinutes || 0;
+      const prevLoc = wishlistById[prev.wishlistItemId];
+      const currLoc = wishlistById[curr.wishlistItemId];
+      if (!prevLoc || !currLoc) return curr.travelTimeMinutes || 0;
+      const result = await calculateTravelTime(prevLoc, currLoc, curr.transportMode);
+      return result ? result.minutes : (curr.travelTimeMinutes || 0);
+    }
+
     async function recalc() {
       setComputing(true);
-      let prevDeparture = null;
+      const n = sorted.length;
+      const arrival = new Array(n).fill(null);
+      const departure = new Array(n).fill(null);
+      const travel = new Array(n).fill(null); // travel[j]：進入第 j 項的交通時間（分鐘）
 
-      for (let i = 0; i < sorted.length; i++) {
-        if (cancelled) return;
-        const curr = sorted[i];
-        const currLoc = wishlistById[curr.wishlistItemId];
-        const updates = {};
+      const anchors = [];
+      for (let i = 0; i < n; i++) {
+        if (i === 0 || sorted[i].arrivalTimeSource === "manual") anchors.push(i);
+      }
+      anchors.forEach(function (i) {
+        arrival[i] = sorted[i].arrivalTime || (i === 0 ? "09:00" : "12:00");
+        departure[i] = addMinutesToTime(arrival[i], sorted[i].durationMinutes || 0);
+      });
 
-        if (i === 0) {
-          const arrival = curr.arrivalTime || "09:00";
-          const departure = addMinutesToTime(arrival, curr.durationMinutes || 0);
-          if (curr.arrivalTime !== arrival) updates.arrivalTime = arrival;
-          if (curr.departureTime !== departure) updates.departureTime = departure;
-          prevDeparture = departure;
-        } else {
-          const prev = sorted[i - 1];
-          const prevLoc = wishlistById[prev.wishlistItemId];
-          let travelMinutes = curr.travelTimeMinutes;
-          let travelMeters = curr.travelDistanceMeters;
-
-          if (curr.travelTimeSource !== "manual" && prevLoc && currLoc) {
-            const result = await calculateTravelTime(prevLoc, currLoc, curr.transportMode);
-            if (result) {
-              travelMinutes = result.minutes;
-              travelMeters = result.meters;
-            }
-          }
-
-          const arrival = addMinutesToTime(prevDeparture, travelMinutes || 0);
-          const departure = addMinutesToTime(arrival, curr.durationMinutes || 0);
-
-          if (travelMinutes !== curr.travelTimeMinutes) updates.travelTimeMinutes = travelMinutes;
-          if (travelMeters !== curr.travelDistanceMeters) updates.travelDistanceMeters = travelMeters;
-          if (arrival !== curr.arrivalTime) updates.arrivalTime = arrival;
-          if (departure !== curr.departureTime) updates.departureTime = departure;
-          prevDeparture = departure;
+      // 兩個錨點之間：從後面那個錨點回推過去
+      for (let a = 0; a < anchors.length - 1 && !cancelled; a++) {
+        const from = anchors[a];
+        const to = anchors[a + 1];
+        for (let j = to; j > from + 1; j--) {
+          if (cancelled) return;
+          const t = await travelInto(j);
+          travel[j] = t;
+          departure[j - 1] = addMinutesToTime(arrival[j], -t);
+          arrival[j - 1] = addMinutesToTime(departure[j - 1], -(sorted[j - 1].durationMinutes || 0));
         }
+        if (!cancelled) travel[from + 1] = travel[from + 1] != null ? travel[from + 1] : await travelInto(from + 1);
+      }
 
+      // 最後一個錨點之後：照原本的邏輯往後累加
+      const lastAnchor = anchors[anchors.length - 1];
+      for (let j = lastAnchor + 1; j < n && !cancelled; j++) {
+        const t = await travelInto(j);
+        travel[j] = t;
+        arrival[j] = addMinutesToTime(departure[j - 1], t);
+        departure[j] = addMinutesToTime(arrival[j], sorted[j].durationMinutes || 0);
+      }
+
+      if (cancelled) return;
+
+      for (let i = 0; i < n; i++) {
+        const curr = sorted[i];
+        const updates = {};
+        if (arrival[i] != null && arrival[i] !== curr.arrivalTime) updates.arrivalTime = arrival[i];
+        if (departure[i] != null && departure[i] !== curr.departureTime) updates.departureTime = departure[i];
+        if (i > 0 && travel[i] != null && travel[i] !== curr.travelTimeMinutes) updates.travelTimeMinutes = travel[i];
         if (Object.keys(updates).length > 0 && !cancelled) {
           await db.doc("trips/" + tripId + "/itineraryItems/" + curr.id).update(updates);
         }

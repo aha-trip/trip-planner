@@ -29,7 +29,18 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
   }
 
   function commitArrivalDraft() {
-    if (arrivalDraft !== item.arrivalTime) updateField({ arrivalTime: arrivalDraft });
+    if (arrivalDraft === item.arrivalTime) return;
+    if (isFirst) {
+      updateField({ arrivalTime: arrivalDraft });
+    } else {
+      // 非第一項自己指定時間，變成這天的一個「錨點」：前面幾項會回推算出該幾點出發，
+      // 後面的項目繼續照原本的邏輯往後推算
+      updateField({ arrivalTime: arrivalDraft, arrivalTimeSource: "manual" });
+    }
+  }
+
+  function resetArrivalToAuto() {
+    updateField({ arrivalTimeSource: "auto" });
   }
 
   async function handleAddOtherDay() {
@@ -96,16 +107,19 @@ function ItineraryItemCard({ tripId, item, wishlistItem, isFirst, isLast, onMove
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-3 text-sm">
             <span className="text-slate-500">
               抵達
-              {isFirst ? (
-                <input
-                  type="time"
-                  className="w-24 mx-1.5 rounded-lg border border-amber-100 px-2 py-1 text-sm"
-                  value={arrivalDraft}
-                  onChange={function (e) { setArrivalDraft(e.target.value); }}
-                  onBlur={commitArrivalDraft}
-                />
-              ) : (
-                <span className="font-medium text-slate-700 ml-1.5">{item.arrivalTime || "--:--"}</span>
+              <input
+                type="time"
+                className="w-24 mx-1.5 rounded-lg border border-amber-100 px-2 py-1 text-sm"
+                value={arrivalDraft}
+                onChange={function (e) { setArrivalDraft(e.target.value); }}
+                onBlur={commitArrivalDraft}
+              />
+              {!isFirst && (
+                item.arrivalTimeSource === "manual" ? (
+                  <button onClick={resetArrivalToAuto} className="text-xs text-brand-600 hover:underline">改回自動</button>
+                ) : (
+                  <span className="text-xs text-slate-400">自動</span>
+                )
               )}
             </span>
             <span className="text-slate-500">

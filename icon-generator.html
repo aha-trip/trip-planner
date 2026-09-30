@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<title>App 圖示產生器（用完可以刪掉這個檔案）</title>
+<style>
+  body { font-family: sans-serif; padding: 24px; background: #fbf4e6; color: #333; }
+  canvas { border: 1px solid #ccc; margin: 8px 12px 8px 0; background: white; }
+  a.btn { display: inline-block; margin: 8px 12px 8px 0; padding: 8px 16px; background: #e97a24; color: white; border-radius: 6px; text-decoration: none; }
+  p { max-width: 560px; line-height: 1.6; }
+</style>
+</head>
+<body>
+  <h1>App 圖示產生器</h1>
+  <p>這個頁面會把 favicon.svg 畫成兩張 App 圖示（192x192 跟 512x512），下面會出現兩個「下載」按鈕。
+  下載後把兩個檔案存到專案資料夾最外層（跟 index.html 同一層），完成後這個 icon-generator.html 可以刪掉，不用放到正式網站上。</p>
+
+  <div>
+    <div>
+      <canvas id="c192" width="192" height="192"></canvas>
+      <canvas id="c512" width="512" height="512" style="width:192px;height:192px;"></canvas>
+    </div>
+    <a id="dl192" class="btn" download="icon-192.png">下載 icon-192.png</a>
+    <a id="dl512" class="btn" download="icon-512.png">下載 icon-512.png</a>
+  </div>
+
+  <script>
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, size, size);
+      // 背景（跟網站的 cream 底色一致）
+      ctx.fillStyle = "#fbf4e6";
+      ctx.fillRect(0, 0, size, size);
+
+      const img = new Image();
+      img.onload = function () {
+        // 留白邊界，避免 Android 自適應圖示遮罩把內容切掉
+        const pad = size * 0.18;
+        const drawSize = size - pad * 2;
+        ctx.drawImage(img, pad, pad, drawSize, drawSize);
+
+        const link = document.getElementById(size === 192 ? "dl192" : "dl512");
+        canvas.toBlob(function (blob) {
+          link.href = URL.createObjectURL(blob);
+        }, "image/png");
+      };
+      img.onerror = function () {
+        alert("讀不到 favicon.svg，請確認這個頁面是用 Live Server 開的（不是直接雙擊檔案）。");
+      };
+      img.src = "favicon.svg";
+    }
+
+    drawIcon(document.getElementById("c192"), 192);
+    drawIcon(document.getElementById("c512"), 512);
+  </script>
+</body>
+</html>
