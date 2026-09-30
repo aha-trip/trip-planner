@@ -1,8 +1,13 @@
-// 讓 App 的介面（HTML/CSS/JS，包含 CDN 上的 React、Firebase、MapLibre 等）離線也能開起來。
+// 讓 App 自己的檔案（HTML/CSS/JS）離線也能開起來。
 // 策略：先試網路拿最新版本，拿得到就順便存一份快取、也回傳給頁面；拿不到（離線）才用上次
 // 存的快取頂替。Firestore 真正的資料同步是另一套機制（見 firebase.js 的 enablePersistence），
-// 這裡不碰，只負責讓「App 殼」本身開得起來。
-const CACHE_NAME = "travel-app-shell-v1";
+// 這裡不碰。
+//
+// 只攔截「自己網站」的請求，CDN／Google 登入／Firebase 等跨網域的請求完全不插手直接放行——
+// 之前版本攔截了所有網域，結果連 Google 登入用的 accounts.google.com 腳本也被攔截處理，
+// 任何一點差錯都可能讓那個請求失敗，導致 Google 登入退回舊版（在 GitHub Pages 這種網域下
+// 很容易出現「missing initial state」之類的登入失敗）。改成只管自己的檔案就沒有這個風險。
+const CACHE_NAME = "travel-app-shell-v2";
 
 self.addEventListener("install", function () {
   self.skipWaiting();
@@ -24,25 +29,14 @@ self.addEventListener("activate", function (event) {
 self.addEventListener("fetch", function (event) {
   const req = event.request;
   if (req.method !== "GET") return; // 只快取讀取，寫入一律走原本的網路請求
-
-  const url = req.url;
-  // Firestore/Auth 的即時連線自己有離線機制，不要讓 Service Worker 插手，避免干擾同步
-  if (
-    url.indexOf("firestore.googleapis.com") >= 0 ||
-    url.indexOf("identitytoolkit.googleapis.com") >= 0 ||
-    url.indexOf("securetoken.googleapis.com") >= 0
-  ) {
-    return;
-  }
+  if (new URL(req.url).origin !== self.location.origin) return; // 只管自己網站的檔案
 
   event.respondWith(
     fetch(req)
       .then(function (res) {
-        //跨網域載入的 CDN script 常常是「不透明回應」(opaque, status 0)，一樣要能快取，
-        // 只是沒辦法檢查內容是否正確，所以連同一般的 200 回應都存
-        if (res && (res.ok || res.type === "opaque")) {
+        if (res && res.ok) {
           const copy = res.clone();
-          caches.open(CACHE_NAME).then(function (cache) { cache.put(req, copy); });
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(req, copy); }).catch(function () {});
         }
         return res;
       })
