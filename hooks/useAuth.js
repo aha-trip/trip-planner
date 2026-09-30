@@ -63,10 +63,22 @@ async function signInWithGoogle() {
     if (useGis) {
       const accessToken = await requestGoogleAccessToken();
       const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-      if (current && current.isAnonymous) {
-        await current.linkWithCredential(credential);
-      } else {
-        await auth.signInWithCredential(credential);
+      try {
+        if (current && current.isAnonymous) {
+          await current.linkWithCredential(credential);
+        } else {
+          await auth.signInWithCredential(credential);
+        }
+      } catch (linkErr) {
+        if (linkErr.code === "auth/credential-already-in-use") {
+          // 這個 Google 帳號以前登入過（換裝置、或清過瀏覽器資料變成新的匿名帳號）：
+          // 直接用同一組 credential 切換過去。這裡不依賴 Firebase 錯誤物件上的 .credential，
+          // 因為用 access token 組出來的 credential，這個屬性不一定會被帶回來，
+          // 是先前登入一直失敗的真正原因。
+          await auth.signInWithCredential(credential);
+        } else {
+          throw linkErr;
+        }
       }
     } else {
       const provider = new firebase.auth.GoogleAuthProvider();
