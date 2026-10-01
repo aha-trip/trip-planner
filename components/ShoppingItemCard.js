@@ -62,7 +62,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
         {scopeEditor}
         <div className="relative">
           <img
-            src={item.imageUrl}
+            src={cloudinaryThumbUrl(item.imageUrl, 160)}
             alt={item.caption || "購物截圖"}
             onClick={onImageClick}
             className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
@@ -110,7 +110,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
       {scopeEditor}
       <div className="relative">
         <img
-          src={item.imageUrl}
+          src={cloudinaryThumbUrl(item.imageUrl, 480)}
           alt={item.caption || "購物截圖"}
           onClick={onImageClick}
           className="w-full h-40 object-cover cursor-zoom-in"

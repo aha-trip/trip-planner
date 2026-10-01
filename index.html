@@ -69,9 +69,9 @@
     </div>
   </div>
 
-  <!-- React -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- React（正式版建置：拿掉開發版的額外檢查與警告，檔案更小、執行更快，功能完全一樣） -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
   <!-- 地圖（免費，不用金鑰，跟 Funliday 同款的 MapLibre GL 向量地圖引擎） -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
@@ -82,8 +82,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 
-  <!-- 專案設定與純 JS 工具（沒有 JSX，不需要 Babel） -->
+  <!-- 專案設定（不會被打包，正式環境也用同一份，保留讓 SETUP.md 的編輯步驟不用改） -->
   <script src="config.js?v=2"></script>
+
+  <!--
+    以下到 App.js 之間的 script 標籤，是給「本機用 Live Server 開發」用的：
+    一支一支直接載入、瀏覽器用 Babel standalone 現場把 JSX 轉成 JS，不用裝 Node.js。
+    正式發布時，GitHub Actions 會把這整段換成一個打包好、壓縮過的 bundle.js，
+    不影響這裡的開發方式，平常編輯檔案、Live Server 開發完全不用改習慣。
+    （build 腳本靠下面這兩行註解抓取要打包的範圍，搬動或改寫法時要小心）
+  -->
+  <!-- BUILD:LOCAL_SCRIPTS_START -->
   <script src="lib/ids.js?v=2"></script>
   <script src="lib/deviceId.js?v=2"></script>
   <script src="lib/undoToast.js?v=2"></script>
@@ -159,5 +168,6 @@
   <script type="text/babel" src="components/TripPrintView.js?v=2"></script>
   <script type="text/babel" src="components/TripLayout.js?v=2"></script>
   <script type="text/babel" src="App.js?v=2"></script>
+  <!-- BUILD:LOCAL_SCRIPTS_END -->
 </body>
 </html>

@@ -5,6 +5,10 @@
 //   "google" 任何有登入的人都能「讀」，但只有「用 Google 登入」的人能「寫」
 // 只有建立者（trips 文件裡的 creatorUid）能切換 accessMode。
 //
+// 「刪除整個行程」是特例，不管 accessMode 是什麼，一律只有建立者能做：
+// link 模式方便朋友不用登入就能一起編輯行程內容（新增/刪除願望清單、行程項目...），
+// 但連結一旦外流，不該讓陌生人把整趟行程砍光——這是唯一跟 accessMode 脫鉤、永遠鎖建立者的動作。
+//
 // 注意：這不是嚴格的私人行程。tripId 本身就是連結的一部分，知道連結的人在兩種模式下都看得到內容。
 
 rules_version = '2';
@@ -44,7 +48,12 @@ service cloud.firestore {
             || request.resource.data.get('accessMode', 'link') == resource.data.get('accessMode', 'link')
             || request.auth.uid == resource.data.creatorUid);
 
-      allow delete: if signedIn() && tripAllowsWrite(resource.data);
+      // 刪除整個行程文件：建立者一旦記錄下來，不管 accessMode 是什麼都只有建立者能刪；
+      // 只有沒有 creatorUid 的舊行程才退回舊規則（跟 accessMode 一樣的相容性處理）。
+      allow delete: if signedIn()
+        && (('creatorUid' in resource.data)
+            ? request.auth.uid == resource.data.creatorUid
+            : tripAllowsWrite(resource.data));
 
       match /{subcollection}/{docId} {
         allow read: if signedIn();

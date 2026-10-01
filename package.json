@@ -1,0 +1,12 @@
+{
+  "name": "trip-planner-build",
+  "private": true,
+  "type": "module",
+  "description": "只有發布正式版才用得到的打包腳本；平常用 Live Server 開發不需要裝這些東西。",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
