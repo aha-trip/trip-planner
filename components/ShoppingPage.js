@@ -1,4 +1,5 @@
 function ShoppingPage({ tripId, nickname }) {
+  const auth = useAuth();
   const [lightboxIndex, setLightboxIndex] = React.useState(null);
   const { data: sharedItems, loading } = useCollection("trips/" + tripId + "/shoppingItems");
   const privateItems = usePrivateShoppingItems(tripId);
@@ -6,6 +7,27 @@ function ShoppingPage({ tripId, nickname }) {
     "trips/" + tripId + "/wishlistItems",
     function (ref) { return ref.orderBy("createdAt"); }
   );
+
+  // 用 Google 登入後，看看這台裝置上還有沒有「登入前」留下的私人截圖，讓使用者一鍵搬到帳號上
+  const [localLeftover, setLocalLeftover] = React.useState(function () { return readPrivateShoppingItems(tripId); });
+  const [migrating, setMigrating] = React.useState(false);
+  const [migrateResult, setMigrateResult] = React.useState(null);
+  React.useEffect(function () {
+    function refresh() { setLocalLeftover(readPrivateShoppingItems(tripId)); }
+    refresh();
+    privateShoppingListeners.push(refresh);
+    return function () {
+      const idx = privateShoppingListeners.indexOf(refresh);
+      if (idx >= 0) privateShoppingListeners.splice(idx, 1);
+    };
+  }, [tripId]);
+
+  async function handleMigrate() {
+    setMigrating(true);
+    const result = await migratePrivateShoppingToCloud(tripId);
+    setMigrateResult(result);
+    setMigrating(false);
+  }
 
   const items = sharedItems
     .filter(function (i) { return !i.deletedAt && isSharedItemVisible(i, nickname); })
@@ -23,6 +45,23 @@ function ShoppingPage({ tripId, nickname }) {
 
   return (
     <div className="space-y-6 relative">
+      {auth.isGoogle && localLeftover.length > 0 && (
+        <div className="bg-sky-50 border border-sky-100 rounded-lg p-3 text-sm text-sky-800 flex items-center justify-between gap-2 flex-wrap">
+          <span>這台裝置上有 {localLeftover.length} 張「只有我」的截圖是登入前新增的，還沒同步到你的帳號，別的裝置看不到</span>
+          <button
+            onClick={handleMigrate}
+            disabled={migrating}
+            className="shrink-0 min-h-[36px] px-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs disabled:opacity-50"
+          >
+            {migrating ? "同步中..." : "同步到帳號"}
+          </button>
+        </div>
+      )}
+      {migrateResult && (
+        <p className="text-xs text-slate-500">
+          已同步 {migrateResult.moved} 張{migrateResult.failed > 0 ? "，" + migrateResult.failed + " 張失敗（圖片可能已損毀）" : ""}。
+        </p>
+      )}
       <div>
         <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-1.5">
           <BagIcon className="w-5 h-5 text-brand-600" /> 新增購物項目

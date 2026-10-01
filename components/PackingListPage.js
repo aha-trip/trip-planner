@@ -81,7 +81,7 @@ function PrivatePackingRow({ tripId, item }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2.5 border-b border-amber-50 last:border-b-0">
       <button
-        onClick={function () { togglePrivatePackingItem(tripId, item.id); }}
+        onClick={function () { togglePrivatePackingItem(tripId, item); }}
         aria-label={item.checked ? "取消勾選" : "勾選已帶"}
         className={
           "shrink-0 w-7 h-7 rounded-lg border-2 flex items-center justify-center text-sm " +
@@ -110,6 +110,7 @@ function PrivatePackingRow({ tripId, item }) {
 const PACKING_PRESETS = ["護照", "簽證／機票證明", "手機充電器", "轉接頭", "行動電源", "常備藥品", "盥洗用具", "換洗衣物", "雨具", "太陽眼鏡"];
 
 function PackingListPage({ tripId, nickname }) {
+  const auth = useAuth();
   const { data: sharedItems, loading } = useCollection("trips/" + tripId + "/packingItems");
   const { data: members } = useCollection("trips/" + tripId + "/members");
   const privateItems = usePrivatePackingItems(tripId);
@@ -117,12 +118,31 @@ function PackingListPage({ tripId, nickname }) {
   const [shareAll, setShareAll] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
 
+  // 用 Google 登入後，看看這台裝置上還有沒有「登入前」留下的個人項目，讓使用者可以一鍵搬到帳號上
+  const [localLeftover, setLocalLeftover] = React.useState(function () { return readPrivatePackingItems(tripId); });
+  const [migrating, setMigrating] = React.useState(false);
+  React.useEffect(function () {
+    function refresh() { setLocalLeftover(readPrivatePackingItems(tripId)); }
+    refresh();
+    privatePackingListeners.push(refresh);
+    return function () {
+      const idx = privatePackingListeners.indexOf(refresh);
+      if (idx >= 0) privatePackingListeners.splice(idx, 1);
+    };
+  }, [tripId]);
+
+  async function handleMigrate() {
+    setMigrating(true);
+    await migratePrivatePackingToCloud(tripId);
+    setMigrating(false);
+  }
+
   const myKey = sanitizeMemberId(nickname);
   const memberCount = members.length;
 
   const rows = sharedItems
-    .map(function (i) { return { kind: "shared", data: i, createdAt: i.createdAt ? i.createdAt.toMillis() : 0 }; })
-    .concat(privateItems.map(function (i) { return { kind: "private", data: i, createdAt: i.createdAt || 0 }; }))
+    .map(function (i) { return { kind: "shared", data: i, createdAt: toMillis(i.createdAt) }; })
+    .concat(privateItems.map(function (i) { return { kind: "private", data: i, createdAt: toMillis(i.createdAt) }; }))
     .sort(function (a, b) { return a.createdAt - b.createdAt; });
 
   const existingNames = rows.map(function (r) { return r.data.name; });
@@ -168,6 +188,19 @@ function PackingListPage({ tripId, nickname }) {
         <BagIcon className="w-5 h-5 text-brand-600" /> 行李清單
         {totalCount > 0 && <span className="text-sm font-normal text-slate-400">（我已收 {doneCount} / {totalCount}）</span>}
       </h2>
+
+      {auth.isGoogle && localLeftover.length > 0 && (
+        <div className="bg-sky-50 border border-sky-100 rounded-lg p-3 text-sm text-sky-800 flex items-center justify-between gap-2 flex-wrap">
+          <span>這台裝置上有 {localLeftover.length} 筆個人項目是登入前新增的，還沒同步到你的帳號，別的裝置看不到</span>
+          <button
+            onClick={handleMigrate}
+            disabled={migrating}
+            className="shrink-0 min-h-[36px] px-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs disabled:opacity-50"
+          >
+            {migrating ? "同步中..." : "同步到帳號"}
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-2">
         <div className="flex gap-2">
