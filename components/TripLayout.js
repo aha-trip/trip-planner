@@ -8,7 +8,7 @@ const TABS = [
 ];
 
 function TripLayout({ tripId, activeTab, focusItemId }) {
-  const { data: trip, loading } = useDocument("trips/" + tripId);
+  const { data: trip, loading, error: tripError } = useDocument("trips/" + tripId);
   const { nickname: localNickname, setNickname } = useLocalIdentity();
   const auth = useAuth();
   // 用 Google 登入時直接用 Google 名稱（換裝置也一樣）；否則用自己輸入的暱稱
@@ -90,6 +90,25 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
       <div className="min-h-screen relative flex items-center justify-center text-slate-400">
         <div className="fixed inset-0 -z-10 bg-gradient-to-b from-sky-100 via-cream to-cream" />
         載入中...
+      </div>
+    );
+  }
+
+  // 讀取過程出錯（例如網路不穩、登入狀態還沒就緒）跟「這趟行程真的不存在」是兩件不同的事，
+  // 不能都顯示成「找不到行程」——那會讓使用者誤以為連結壞了，其實重新整理通常就會好。
+  if (tripError) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center px-4">
+        <div className="fixed inset-0 -z-10 bg-gradient-to-b from-sky-100 via-cream to-cream" />
+        <div className="max-w-md rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm p-4 text-center space-y-3">
+          <p>讀取行程時連線出了問題，不一定是連結本身有誤。</p>
+          <button
+            onClick={function () { window.location.reload(); }}
+            className="min-h-[40px] px-4 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm"
+          >
+            重新整理
+          </button>
+        </div>
       </div>
     );
   }

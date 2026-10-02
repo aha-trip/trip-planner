@@ -27,6 +27,20 @@ if (usingRealFirebase) {
     console.warn("離線快取未啟用（多分頁鎖定或瀏覽器不支援）:", err.code);
   });
 
+  // 匿名登入偶爾會因為網路不穩失敗一次，失敗就直接放棄的話，之後所有讀取都會被規則擋掉
+  // （看起來就像「這趟行程不存在」，其實只是沒登入），所以失敗要重試幾次再放棄。
+  function signInAnonymouslyWithRetry(attemptsLeft) {
+    return firebase.auth().signInAnonymously().catch((err) => {
+      if (attemptsLeft <= 0) {
+        console.error("匿名登入失敗（已重試多次）:", err);
+        throw err;
+      }
+      return new Promise((resolve) => setTimeout(resolve, 1000)).then(() =>
+        signInAnonymouslyWithRetry(attemptsLeft - 1)
+      );
+    });
+  }
+
   // 監聽器一直留著：沒有登入身分（第一次進來、或按了 Google 登出）就自動退回匿名登入，
   // 這樣「有連結就能編輯」的行程任何時候都能用。
   authReadyPromise = new Promise((resolve) => {
@@ -38,8 +52,7 @@ if (usingRealFirebase) {
           resolve(user);
         }
       } else {
-        firebase.auth().signInAnonymously().catch((err) => {
-          console.error("匿名登入失敗:", err);
+        signInAnonymouslyWithRetry(3).catch(() => {
           if (!resolved) {
             resolved = true;
             resolve(null);
