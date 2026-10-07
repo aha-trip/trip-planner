@@ -75,7 +75,12 @@ function BottomNav({ tripId, activeTab }) {
       {BOTTOM_NAV_PRIMARY.map(function (tab) {
         const isActive = tab.key === activeTab;
         return (
-          <a key={tab.key} href={"#/trip/" + tripId + "/" + tab.key} className={itemClass(isActive)}>
+          <a
+            key={tab.key}
+            href={"#/trip/" + tripId + "/" + tab.key}
+            onClick={function () { if (!isActive) hapticLight(); }}
+            className={itemClass(isActive)}
+          >
             <tab.Icon className="w-5 h-5" />
             {tab.label}
           </a>
@@ -84,7 +89,7 @@ function BottomNav({ tripId, activeTab }) {
 
       <button
         type="button"
-        onClick={function () { setMoreOpen(!moreOpen); }}
+        onClick={function () { hapticLight(); setMoreOpen(!moreOpen); }}
         aria-label="更多分頁"
         aria-expanded={moreOpen}
         className={itemClass(isOverflowActive || moreOpen)}

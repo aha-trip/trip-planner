@@ -27,6 +27,24 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
     e.target.value = ""; // 讓同一張照片移除後還能再選一次
   }
 
+  // 包裝成 App 之後，呼叫手機系統內建的相機直接拍照（不是網頁的「選檔案」再跳系統選單那種間接方式），
+  // 這是補 App Store 審查「要有原生功能」的其中一項。網頁版沒有 window.Capacitor，這顆按鈕不會出現。
+  async function handleNativeCamera() {
+    try {
+      const photo = await window.Capacitor.Plugins.Camera.getPhoto({
+        quality: 85,
+        resultType: "dataUrl",
+        source: "CAMERA",
+      });
+      const res = await fetch(photo.dataUrl);
+      const blob = await res.blob();
+      const ext = (photo.format || "jpeg").replace("jpg", "jpeg");
+      setFile(new File([blob], "camera." + ext, { type: "image/" + ext }));
+    } catch (err) {
+      // 使用者自己取消拍照也會跑到這裡，不是真的錯誤，安靜結束就好
+    }
+  }
+
   function handlePaste(e) {
     const items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
@@ -110,6 +128,15 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
         </div>
       ) : (
         <div className="space-y-2">
+          {window.Capacitor && window.Capacitor.isNativePlatform() && (
+            <button
+              type="button"
+              onClick={handleNativeCamera}
+              className="w-full min-h-[48px] rounded-lg border-2 border-brand-600 text-white font-medium bg-brand-600 active:bg-brand-700"
+            >
+              📷 拍照
+            </button>
+          )}
           <button
             type="button"
             onClick={function () { document.getElementById(fileInputId).click(); }}

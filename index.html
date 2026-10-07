@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>旅遊規劃</title>
+  <title>ZouLa</title>
   <link rel="icon" type="image/png" href="favicon.png" />
 
   <!-- PWA：讓手機瀏覽器可以「加到主畫面」，用起來像 App -->
@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="旅遊規劃" />
+  <meta name="apple-mobile-web-app-title" content="ZouLa" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -83,7 +83,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 
   <!-- 專案設定（不會被打包，正式環境也用同一份，保留讓 SETUP.md 的編輯步驟不用改） -->
-  <script src="config.js?v=18"></script>
+  <script src="config.js?v=21"></script>
 
   <!--
     以下到 App.js 之間的 script 標籤，是給「本機用 Live Server 開發」用的：
@@ -93,85 +93,86 @@
     （build 腳本靠下面這兩行註解抓取要打包的範圍，搬動或改寫法時要小心）
   -->
   <!-- BUILD:LOCAL_SCRIPTS_START -->
-  <script src="lib/ids.js?v=18"></script>
-  <script src="lib/deviceId.js?v=18"></script>
-  <script src="lib/undoToast.js?v=18"></script>
-  <script src="lib/localBackend.js?v=18"></script>
-  <script src="lib/cloudinaryStorage.js?v=18"></script>
-  <script src="firebase.js?v=18"></script>
-  <script src="lib/mapsLink.js?v=18"></script>
-  <script src="lib/dates.js?v=18"></script>
-  <script src="lib/time.js?v=18"></script>
-  <script src="lib/places.js?v=18"></script>
-  <script src="lib/directions.js?v=18"></script>
-  <script src="lib/weather.js?v=18"></script>
-  <script src="lib/privateShopping.js?v=18"></script>
-  <script src="lib/privatePacking.js?v=18"></script>
-  <script src="lib/shoppingScope.js?v=18"></script>
-  <script src="lib/imageCompress.js?v=18"></script>
-  <script src="lib/exportMyMaps.js?v=18"></script>
-  <script src="lib/geo.js?v=18"></script>
-  <script src="lib/geocode.js?v=18"></script>
-  <script src="lib/currencies.js?v=18"></script>
-  <script src="lib/expenseCategories.js?v=18"></script>
-  <script src="lib/itineraryActions.js?v=18"></script>
-  <script src="lib/visibility.js?v=18"></script>
-  <script src="lib/recentTrips.js?v=18"></script>
-  <script src="hooks/useLocalIdentity.js?v=18"></script>
-  <script src="hooks/useAuth.js?v=18"></script>
-  <script src="hooks/useCollection.js?v=18"></script>
-  <script src="hooks/usePrivateShoppingItems.js?v=18"></script>
-  <script src="hooks/usePrivatePackingItems.js?v=18"></script>
-  <script src="hooks/useFontScale.js?v=18"></script>
-  <script src="hooks/useAutoHideHeader.js?v=18"></script>
-  <script src="hooks/useOnlineStatus.js?v=18"></script>
+  <script src="lib/ids.js?v=21"></script>
+  <script src="lib/deviceId.js?v=21"></script>
+  <script src="lib/undoToast.js?v=21"></script>
+  <script src="lib/localBackend.js?v=21"></script>
+  <script src="lib/cloudinaryStorage.js?v=21"></script>
+  <script src="firebase.js?v=21"></script>
+  <script src="lib/mapsLink.js?v=21"></script>
+  <script src="lib/dates.js?v=21"></script>
+  <script src="lib/haptics.js?v=21"></script>
+  <script src="lib/time.js?v=21"></script>
+  <script src="lib/places.js?v=21"></script>
+  <script src="lib/directions.js?v=21"></script>
+  <script src="lib/weather.js?v=21"></script>
+  <script src="lib/privateShopping.js?v=21"></script>
+  <script src="lib/privatePacking.js?v=21"></script>
+  <script src="lib/shoppingScope.js?v=21"></script>
+  <script src="lib/imageCompress.js?v=21"></script>
+  <script src="lib/exportMyMaps.js?v=21"></script>
+  <script src="lib/geo.js?v=21"></script>
+  <script src="lib/geocode.js?v=21"></script>
+  <script src="lib/currencies.js?v=21"></script>
+  <script src="lib/expenseCategories.js?v=21"></script>
+  <script src="lib/itineraryActions.js?v=21"></script>
+  <script src="lib/visibility.js?v=21"></script>
+  <script src="lib/recentTrips.js?v=21"></script>
+  <script src="hooks/useLocalIdentity.js?v=21"></script>
+  <script src="hooks/useAuth.js?v=21"></script>
+  <script src="hooks/useCollection.js?v=21"></script>
+  <script src="hooks/usePrivateShoppingItems.js?v=21"></script>
+  <script src="hooks/usePrivatePackingItems.js?v=21"></script>
+  <script src="hooks/useFontScale.js?v=21"></script>
+  <script src="hooks/useAutoHideHeader.js?v=21"></script>
+  <script src="hooks/useOnlineStatus.js?v=21"></script>
 
   <!-- Babel Standalone：讓瀏覽器直接讀懂下面這些含 JSX 的檔案，不需要建置流程 -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <script type="text/babel" src="components/Icons.js?v=18"></script>
-  <script type="text/babel" src="components/FontSizeButton.js?v=18"></script>
-  <script type="text/babel" src="components/LinkifiedText.js?v=18"></script>
-  <script type="text/babel" src="components/WishlistPicker.js?v=18"></script>
-  <script type="text/babel" src="components/NearbyPanel.js?v=18"></script>
-  <script type="text/babel" src="components/CurrencyPicker.js?v=18"></script>
-  <script type="text/babel" src="components/ExpenseForm.js?v=18"></script>
-  <script type="text/babel" src="components/HeaderMenu.js?v=18"></script>
-  <script type="text/babel" src="components/MemberAvatars.js?v=18"></script>
-  <script type="text/babel" src="components/BottomNav.js?v=18"></script>
-  <script type="text/babel" src="components/ShareScopePicker.js?v=18"></script>
-  <script type="text/babel" src="components/ShareScopeEditor.js?v=18"></script>
-  <script type="text/babel" src="components/UndoToastHost.js?v=18"></script>
-  <script type="text/babel" src="components/MemberListPanel.js?v=18"></script>
-  <script type="text/babel" src="components/NicknamePrompt.js?v=18"></script>
-  <script type="text/babel" src="components/GoogleRequiredPrompt.js?v=18"></script>
-  <script type="text/babel" src="components/AccountButton.js?v=18"></script>
-  <script type="text/babel" src="components/TripListItem.js?v=18"></script>
-  <script type="text/babel" src="components/Home.js?v=18"></script>
-  <script type="text/babel" src="components/ImageLightbox.js?v=18"></script>
-  <script type="text/babel" src="components/ShoppingItemCard.js?v=18"></script>
-  <script type="text/babel" src="components/AddShoppingItemForm.js?v=18"></script>
-  <script type="text/babel" src="components/LinkedShoppingMiniList.js?v=18"></script>
-  <script type="text/babel" src="components/ShoppingPage.js?v=18"></script>
-  <script type="text/babel" src="components/AddWishlistItemForm.js?v=18"></script>
-  <script type="text/babel" src="components/WishlistEditor.js?v=18"></script>
-  <script type="text/babel" src="components/WishlistItemCard.js?v=18"></script>
-  <script type="text/babel" src="components/WishlistPage.js?v=18"></script>
-  <script type="text/babel" src="components/TravelSegment.js?v=18"></script>
-  <script type="text/babel" src="components/DayWeatherBanner.js?v=18"></script>
-  <script type="text/babel" src="components/ItineraryItemCard.js?v=18"></script>
-  <script type="text/babel" src="components/DayColumn.js?v=18"></script>
-  <script type="text/babel" src="components/DayTabWeather.js?v=18"></script>
-  <script type="text/babel" src="components/DayTabs.js?v=18"></script>
-  <script type="text/babel" src="components/ItineraryOverview.js?v=18"></script>
-  <script type="text/babel" src="components/ItineraryPage.js?v=18"></script>
-  <script type="text/babel" src="components/MapPage.js?v=18"></script>
-  <script type="text/babel" src="components/ExpensesPage.js?v=18"></script>
-  <script type="text/babel" src="components/PackingListPage.js?v=18"></script>
-  <script type="text/babel" src="components/TripPrintView.js?v=18"></script>
-  <script type="text/babel" src="components/DemoTrip.js?v=18"></script>
-  <script type="text/babel" src="components/TripLayout.js?v=18"></script>
-  <script type="text/babel" src="App.js?v=18"></script>
+  <script type="text/babel" src="components/Icons.js?v=21"></script>
+  <script type="text/babel" src="components/FontSizeButton.js?v=21"></script>
+  <script type="text/babel" src="components/LinkifiedText.js?v=21"></script>
+  <script type="text/babel" src="components/WishlistPicker.js?v=21"></script>
+  <script type="text/babel" src="components/NearbyPanel.js?v=21"></script>
+  <script type="text/babel" src="components/CurrencyPicker.js?v=21"></script>
+  <script type="text/babel" src="components/ExpenseForm.js?v=21"></script>
+  <script type="text/babel" src="components/HeaderMenu.js?v=21"></script>
+  <script type="text/babel" src="components/MemberAvatars.js?v=21"></script>
+  <script type="text/babel" src="components/BottomNav.js?v=21"></script>
+  <script type="text/babel" src="components/ShareScopePicker.js?v=21"></script>
+  <script type="text/babel" src="components/ShareScopeEditor.js?v=21"></script>
+  <script type="text/babel" src="components/UndoToastHost.js?v=21"></script>
+  <script type="text/babel" src="components/MemberListPanel.js?v=21"></script>
+  <script type="text/babel" src="components/NicknamePrompt.js?v=21"></script>
+  <script type="text/babel" src="components/GoogleRequiredPrompt.js?v=21"></script>
+  <script type="text/babel" src="components/AccountButton.js?v=21"></script>
+  <script type="text/babel" src="components/TripListItem.js?v=21"></script>
+  <script type="text/babel" src="components/Home.js?v=21"></script>
+  <script type="text/babel" src="components/ImageLightbox.js?v=21"></script>
+  <script type="text/babel" src="components/ShoppingItemCard.js?v=21"></script>
+  <script type="text/babel" src="components/AddShoppingItemForm.js?v=21"></script>
+  <script type="text/babel" src="components/LinkedShoppingMiniList.js?v=21"></script>
+  <script type="text/babel" src="components/ShoppingPage.js?v=21"></script>
+  <script type="text/babel" src="components/AddWishlistItemForm.js?v=21"></script>
+  <script type="text/babel" src="components/WishlistEditor.js?v=21"></script>
+  <script type="text/babel" src="components/WishlistItemCard.js?v=21"></script>
+  <script type="text/babel" src="components/WishlistPage.js?v=21"></script>
+  <script type="text/babel" src="components/TravelSegment.js?v=21"></script>
+  <script type="text/babel" src="components/DayWeatherBanner.js?v=21"></script>
+  <script type="text/babel" src="components/ItineraryItemCard.js?v=21"></script>
+  <script type="text/babel" src="components/DayColumn.js?v=21"></script>
+  <script type="text/babel" src="components/DayTabWeather.js?v=21"></script>
+  <script type="text/babel" src="components/DayTabs.js?v=21"></script>
+  <script type="text/babel" src="components/ItineraryOverview.js?v=21"></script>
+  <script type="text/babel" src="components/ItineraryPage.js?v=21"></script>
+  <script type="text/babel" src="components/MapPage.js?v=21"></script>
+  <script type="text/babel" src="components/ExpensesPage.js?v=21"></script>
+  <script type="text/babel" src="components/PackingListPage.js?v=21"></script>
+  <script type="text/babel" src="components/TripPrintView.js?v=21"></script>
+  <script type="text/babel" src="components/DemoTrip.js?v=21"></script>
+  <script type="text/babel" src="components/TripLayout.js?v=21"></script>
+  <script type="text/babel" src="App.js?v=21"></script>
   <!-- BUILD:LOCAL_SCRIPTS_END -->
 </body>
 </html>

@@ -53,50 +53,75 @@ function requestGoogleAccessToken() {
   });
 }
 
-async function signInWithGoogle() {
-  if (!usingRealFirebase) throw new Error("本機試玩模式沒有 Google 登入");
-  if (isInAppBrowser()) throw Object.assign(new Error("in-app"), { code: "auth/in-app-browser" });
-  const auth = firebase.auth();
+function isNativeApp() {
+  return Boolean(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+}
+
+// 把拿到的 Google credential 套用到目前的登入狀態：如果現在是匿名身分就「升級」成 Google 帳號
+// （uid 不變，之前的建立者身分、資料都保留）；不是匿名就直接登入。
+// 「這個 Google 帳號以前登入過」（換裝置、或清過瀏覽器資料變成新的匿名帳號）的情況，
+// 兩種路徑都可能發生，統一在這裡處理，三種登入方式（原生、GIS、彈出視窗）共用同一套。
+async function applyGoogleCredential(auth, credential) {
   const current = auth.currentUser;
-  const useGis = Boolean(CONFIG.googleClientId) && window.google && window.google.accounts && window.google.accounts.oauth2;
   try {
-    if (useGis) {
-      const accessToken = await requestGoogleAccessToken();
-      const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-      try {
-        if (current && current.isAnonymous) {
-          await current.linkWithCredential(credential);
-        } else {
-          await auth.signInWithCredential(credential);
-        }
-      } catch (linkErr) {
-        if (linkErr.code === "auth/credential-already-in-use") {
-          // 這個 Google 帳號以前登入過（換裝置、或清過瀏覽器資料變成新的匿名帳號）：
-          // 直接用同一組 credential 切換過去。這裡不依賴 Firebase 錯誤物件上的 .credential，
-          // 因為用 access token 組出來的 credential，這個屬性不一定會被帶回來，
-          // 是先前登入一直失敗的真正原因。
-          await auth.signInWithCredential(credential);
-        } else {
-          throw linkErr;
-        }
-      }
+    if (current && current.isAnonymous) {
+      await current.linkWithCredential(credential);
     } else {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      if (current && current.isAnonymous) {
-        // 把目前的匿名身分升級成 Google 帳號：uid 不變，之前的建立者身分和資料都保留
-        await current.linkWithPopup(provider);
-      } else {
-        await auth.signInWithPopup(provider);
-      }
+      await auth.signInWithCredential(credential);
     }
   } catch (err) {
-    if (err.code === "auth/credential-already-in-use" && err.credential) {
-      // 這個 Google 帳號以前登入過（換裝置的情況）：直接切換到那個帳號
-      await auth.signInWithCredential(err.credential);
+    if (err.code === "auth/credential-already-in-use") {
+      // 不依賴 Firebase 錯誤物件上的 .credential（用 access token / id token 組出來的
+      // credential，這個屬性不一定會被帶回來），直接拿我們自己手上這組 credential 登入。
+      await auth.signInWithCredential(credential);
     } else {
       throw err;
     }
   }
+}
+
+async function signInWithGoogle() {
+  if (!usingRealFirebase) throw new Error("本機試玩模式沒有 Google 登入");
+  const auth = firebase.auth();
+
+  if (isNativeApp()) {
+    // 包裝成 App 之後，網頁版那套（彈出視窗 / Google Identity Services）會被 Google 擋下來
+    // ——Google 的政策不允許在「內嵌 WebView」裡跳 OAuth 登入視窗，偵測到就直接拒絕，不是
+    // 這裡寫錯。正確做法是呼叫手機系統內建的 Google 登入（原生畫面，不是網頁彈窗），
+    // 這段交給 @capacitor-firebase/authentication 這個外掛處理，它會跳出手機原生的帳號
+    // 選擇畫面，選完後把 idToken 回傳給我們，我們再拿這組 idToken 讓網頁版的 Firebase SDK
+    // （compat，這個 App 其他地方都是用這個）也同步登入，兩邊狀態才會一致。
+    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle();
+    const idToken = result && result.credential && result.credential.idToken;
+    if (!idToken) throw Object.assign(new Error("沒有拿到登入憑證"), { code: "auth/native-no-id-token" });
+    const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+    await applyGoogleCredential(auth, credential);
+  } else {
+    if (isInAppBrowser()) throw Object.assign(new Error("in-app"), { code: "auth/in-app-browser" });
+    const useGis = Boolean(CONFIG.googleClientId) && window.google && window.google.accounts && window.google.accounts.oauth2;
+    if (useGis) {
+      const accessToken = await requestGoogleAccessToken();
+      const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
+      await applyGoogleCredential(auth, credential);
+    } else {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const current = auth.currentUser;
+      try {
+        if (current && current.isAnonymous) {
+          await current.linkWithPopup(provider);
+        } else {
+          await auth.signInWithPopup(provider);
+        }
+      } catch (err) {
+        if (err.code === "auth/credential-already-in-use" && err.credential) {
+          await auth.signInWithCredential(err.credential);
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+
   // Firestore 規則靠 token 裡的登入方式判斷，升級後要強制換一張新的
   await auth.currentUser.getIdToken(true);
   notifyAuthSubscribers();
@@ -124,11 +149,16 @@ function useAuth() {
 // 登入失敗時給使用者看的提示（使用者自己關掉視窗不算錯誤）
 function describeAuthError(err) {
   const code = err && err.code;
+  const message = (err && err.message) || "";
   if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return null;
   if (code === "auth/in-app-browser") return "這個內建瀏覽器（LINE／Facebook／Instagram 等）Google 不允許登入，請點右上角選單「用瀏覽器開啟」，改用 Chrome 或 Safari 再登入。";
   if (code === "auth/access_denied") return null;
   if (code === "auth/popup-blocked") return "瀏覽器擋掉了登入視窗，請允許這個網站的彈出視窗後再試一次。";
   if (code === "auth/unauthorized-domain") return "這個網址還沒加進 Firebase 的「授權網域」，請照 SETUP.md 設定。";
   if (code === "auth/operation-not-allowed") return "Firebase 還沒啟用 Google 登入，請照 SETUP.md 設定。";
+  if (code === "auth/native-no-id-token") return "App 沒有拿到登入憑證，請照 SETUP.md「App 內 Google 登入」那節確認原生設定是否完成。";
+  // 使用者自己關掉手機原生的帳號選擇畫面，不同手機品牌訊息不太一樣，用關鍵字抓
+  if (/cancel/i.test(message) || /cancel/i.test(code || "")) return null;
+  if (isNativeApp()) return "登入失敗，請稍後再試。如果一直失敗，可能是原生 Google 登入還沒設定完成，請照 SETUP.md 檢查。";
   return "登入失敗，請稍後再試。";
 }

@@ -1,6 +1,6 @@
 {
-  "name": "旅遊規劃",
-  "short_name": "旅遊規劃",
+  "name": "ZouLa",
+  "short_name": "ZouLa",
   "description": "一起規劃行程、願望清單、花費與打包清單",
   "start_url": "./",
   "scope": "./",

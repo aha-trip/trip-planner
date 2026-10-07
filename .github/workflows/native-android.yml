@@ -12,9 +12,18 @@ name: 打包 Android App（手動觸發）
 #
 # 這個 debug 版本可以直接裝到自己手機測試，但不能上架 Google Play（上架需要另外簽署「正式版」，
 # 之後真的要上架時再處理）。
+#
+# 關於 Google 登入：原生的 Google 登入需要 android/app/google-services.json 這個檔案，
+# 要先照 SETUP.md「App 內 Google 登入」那節，到 Firebase Console 設定好、把檔案存成
+# native-config/google-services.json 放進這個 repo，這個流程才會幫你接上去。
+# 還沒放這個檔案也沒關係，App 一樣會打包成功，只是 Google 登入在 App 裡會是「還沒設定」的狀態，
+# 不影響其他功能（用暱稱加入完全不受影響）。
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-android:
@@ -25,6 +34,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
 
       - name: 安裝打包工具（esbuild、Capacitor）
         run: npm install
@@ -41,13 +55,46 @@ jobs:
       - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
         run: npx @capacitor/assets generate --android --assetPath resources
 
+      # 確保有固定不變的 debug 簽署金鑰（第一次執行會自動產生並存回 repo，之後每次都重複用
+      # 同一把——Google 登入需要把這把金鑰的「指紋」登記在 Firebase，如果每次都用不同的金鑰，
+      # 登記過的指紋就對不上，Google 登入永遠會失敗。這是 debug 用的金鑰，不是正式上架簽署用
+      # 的那把，放在公開 repo 沒有安全疑慮，就跟每台 Android 開發機本來就有的預設 debug
+      # 金鑰（密碼固定是 "android"）是同一個等級的東西。
+      - name: 確保有固定不變的 debug 簽署金鑰
+        run: |
+          mkdir -p keystores
+          if [ ! -f keystores/debug.keystore ]; then
+            keytool -genkeypair -v -keystore keystores/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=ZouLa Debug,O=ZouLa"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add keystores/debug.keystore
+            git commit -m "新增固定的 debug 簽署金鑰（CI 自動產生並提交，之後都重複使用這把）"
+            git push
+          fi
+          mkdir -p ~/.android
+          cp keystores/debug.keystore ~/.android/debug.keystore
+          echo "===================================================================="
+          echo "這把 debug 金鑰的指紋（如果要設定 Google 登入，SHA-1 要貼到 Firebase）："
+          keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | grep -E "SHA1|SHA256"
+          echo "===================================================================="
+
+      - name: 接上 google-services.json（已經照 SETUP.md 設定好才會生效，沒設定也不會讓打包失敗）
+        run: |
+          if [ -f native-config/google-services.json ]; then
+            cp native-config/google-services.json android/app/google-services.json
+            # 讓 Android 專案知道要套用 Google 的 Gradle 外掛，這樣 google-services.json 才會真的生效
+            sed -i "/classpath 'com.android.tools.build:gradle/a\\        classpath 'com.google.gms:google-services:4.4.2'" android/build.gradle
+            echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+            echo "已接上 google-services.json，Google 登入會是完整版本"
+          else
+            echo "::warning::還沒有 native-config/google-services.json，這次打包的 App 裡 Google 登入會沒有作用（其他功能都正常），照 SETUP.md 設定好再重新打包一次即可"
+          fi
+
       - name: 把設定（capacitor.config.json）同步進 android 專案
         run: npx cap sync android
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
 
       - name: 組建 debug APK（還沒簽署正式版，先給自己手機測試用）
         working-directory: android

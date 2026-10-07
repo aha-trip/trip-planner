@@ -36,6 +36,25 @@ jobs:
       - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
         run: npx @capacitor/assets generate --ios --assetPath resources
 
+      # 跟 Android 那份一樣，要先照 SETUP.md 到 Firebase Console 設定好、把檔案存成
+      # native-config/GoogleService-Info.plist 放進這個 repo，這裡才會幫你接上去；
+      # 沒放這個檔案，App 一樣會打包成功，只是 Google 登入在 App 裡不會動。
+      - name: 接上 GoogleService-Info.plist（已經照 SETUP.md 設定好才會生效，沒設定也不會讓打包失敗）
+        run: |
+          if [ -f native-config/GoogleService-Info.plist ]; then
+            cp native-config/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
+            # Google 登入在 iOS 上需要把這組「反過來寫的用戶端 ID」登記成 App 的網址格式（URL Scheme），
+            # 登入視窗跳轉回 App 時系統才知道要交給誰 —— 直接從 plist 裡讀出來，不用手動填
+            REVERSED_ID=$(/usr/libexec/PlistBuddy -c "Print :REVERSED_CLIENT_ID" native-config/GoogleService-Info.plist)
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" ios/App/App/Info.plist 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" ios/App/App/Info.plist
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" ios/App/App/Info.plist
+            /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string $REVERSED_ID" ios/App/App/Info.plist
+            echo "已接上 GoogleService-Info.plist，Google 登入會是完整版本"
+          else
+            echo "::warning::還沒有 native-config/GoogleService-Info.plist，這次打包的 App 裡 Google 登入會沒有作用（其他功能都正常），照 SETUP.md 設定好再重新打包一次即可"
+          fi
+
       - name: 把設定（capacitor.config.json）同步進 ios 專案
         run: npx cap sync ios
 

@@ -84,8 +84,24 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
     });
   }, [tripId, uid, auth.isGoogle, trip && trip.name, trip && trip.destination, trip && trip.startDate, trip && trip.endDate, trip && trip.approxDays]);
 
-  function copyShareLink() {
+  async function copyShareLink() {
     const url = window.location.origin + window.location.pathname + "#/trip/" + tripId + "/wishlist";
+    // 包裝成 App 之後，有原生的分享選單（傳 LINE、訊息、Email…）可以用，比單純複製連結更好用，
+    // 也是補 App Store 審查要求「要有原生功能」的其中一項。網頁版沒有 window.Capacitor，走原本複製連結。
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      try {
+        await window.Capacitor.Plugins.Share.share({
+          title: trip.name,
+          text: "一起規劃「" + trip.name + "」吧！",
+          url: url,
+          dialogTitle: "分享行程連結",
+        });
+        return;
+      } catch (err) {
+        // 使用者自己關掉分享視窗也會跑到這裡，不是真的錯誤，不用額外處理，安靜結束就好
+        return;
+      }
+    }
     navigator.clipboard
       .writeText(url)
       .then(function () {

@@ -104,7 +104,7 @@ function Home() {
         <div className="text-center mb-2">
           <div className="flex items-center justify-center gap-2 mb-1">
             <img src="logo-icon.png" alt="" className="w-9 h-9 object-contain" />
-            <h1 className="text-2xl font-bold text-slate-800">旅遊規劃</h1>
+            <h1 className="text-2xl font-bold text-slate-800">ZouLa</h1>
           </div>
           <p className="text-slate-500 text-sm">建立一趟行程，把連結分享給大家一起編輯</p>
         </div>

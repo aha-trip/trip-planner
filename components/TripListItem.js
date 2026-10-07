@@ -46,8 +46,15 @@ function TripListItem({ trip, onRemove }) {
     if (!g) return;
     const shouldReveal = g.committed && dragX < -TRIP_LIST_DELETE_WIDTH / 2;
     gestureRef.current = null;
+    // 滑過門檻、「刪除」要跳出來的那一刻給個輕輕的震動，確認使用者已經滑到底了（網頁版安靜無感）
+    if (shouldReveal && !revealed) hapticLight();
     setRevealed(shouldReveal);
     setDragX(shouldReveal ? -TRIP_LIST_DELETE_WIDTH : 0);
+  }
+
+  function handleDeleteClick() {
+    hapticMedium();
+    onRemove();
   }
 
   function handleRowClick(e) {
@@ -62,7 +69,7 @@ function TripListItem({ trip, onRemove }) {
     <div className="group relative overflow-hidden rounded-lg">
       <button
         type="button"
-        onClick={onRemove}
+        onClick={handleDeleteClick}
         title="從清單移除"
         className="absolute inset-y-0 right-0 flex items-center justify-center text-white bg-red-500 active:bg-red-600 text-sm font-medium"
         style={{ width: TRIP_LIST_DELETE_WIDTH }}
@@ -97,7 +104,7 @@ function TripListItem({ trip, onRemove }) {
         {/* 網頁版滑鼠操作沒有滑動手勢，hover 才出現一個小垃圾桶取代滑動 */}
         <button
           type="button"
-          onClick={function (e) { e.preventDefault(); e.stopPropagation(); onRemove(); }}
+          onClick={function (e) { e.preventDefault(); e.stopPropagation(); handleDeleteClick(); }}
           title="從清單移除"
           className="hidden sm:group-hover:flex shrink-0 w-6 h-6 items-center justify-center rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50"
         >
