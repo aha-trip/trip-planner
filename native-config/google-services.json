@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "940853643787",
+    "project_id": "travel-planning-a3b1a",
+    "storage_bucket": "travel-planning-a3b1a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:940853643787:android:284101f95d36fd7b91550e",
+        "android_client_info": {
+          "package_name": "io.github.ahatrip.tripplanner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "940853643787-4s4fr10vepnu0g0sgmheeu6i790kji27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBQwQz3I-6KYLjKKKS9utnRuJDQxBab6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "940853643787-4s4fr10vepnu0g0sgmheeu6i790kji27.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
