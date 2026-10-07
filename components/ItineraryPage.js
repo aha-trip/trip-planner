@@ -47,6 +47,7 @@ function ItineraryPage({ tripId, trip, nickname }) {
   if (dayList.length === 0) {
     return (
       <p className="text-slate-400 text-sm">
+        {trip && trip.approxDays ? "這趟行程大概" + trip.approxDays + "天，日期還沒定。" : ""}
         還沒有安排任何一天的行程，先到「願望清單」把想去的地方加入某一天吧！
       </p>
     );

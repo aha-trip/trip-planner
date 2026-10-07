@@ -48,8 +48,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
 
   React.useEffect(function () {
     if (!trip) return;
-    recordRecentTrip(tripId, { name: trip.name, destination: trip.destination || "" });
-  }, [tripId, trip && trip.name, trip && trip.destination]);
+    recordRecentTrip(tripId, {
+      name: trip.name,
+      destination: trip.destination || "",
+      startDate: trip.startDate || null,
+      endDate: trip.endDate || null,
+      approxDays: trip.approxDays || null,
+    });
+  }, [tripId, trip && trip.name, trip && trip.destination, trip && trip.startDate, trip && trip.endDate, trip && trip.approxDays]);
 
   // 這趟行程是在「建立者管理名單」功能上線前就建立的，沒有記錄 creatorDeviceId，
   // 這裡讓第一個打開它的人（通常就是原本的建立者回來看）自動補上，避免永遠沒有人能管理名單。
@@ -69,8 +75,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   // 用 Google 登入時，把這趟行程記進帳號的「打開過的行程」，換裝置登入也看得到
   React.useEffect(function () {
     if (!trip || !uid || !auth.isGoogle) return;
-    saveRecentTripToCloud(uid, tripId, { name: trip.name, destination: trip.destination || "" });
-  }, [tripId, uid, auth.isGoogle, trip && trip.name, trip && trip.destination]);
+    saveRecentTripToCloud(uid, tripId, {
+      name: trip.name,
+      destination: trip.destination || "",
+      startDate: trip.startDate || null,
+      endDate: trip.endDate || null,
+      approxDays: trip.approxDays || null,
+    });
+  }, [tripId, uid, auth.isGoogle, trip && trip.name, trip && trip.destination, trip && trip.startDate, trip && trip.endDate, trip && trip.approxDays]);
 
   function copyShareLink() {
     const url = window.location.origin + window.location.pathname + "#/trip/" + tripId + "/wishlist";
@@ -134,7 +146,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
       {locked && !dismissedGooglePrompt && (
         <GoogleRequiredPrompt onDismiss={function () { setDismissedGooglePrompt(true); }} />
       )}
-      {!locked && !nickname && <NicknamePrompt onSubmit={setNickname} />}
+      {!locked && !nickname && <NicknamePrompt onSubmit={setNickname} trip={trip} tripId={tripId} />}
 
       <header
         ref={setHeaderEl}
@@ -173,16 +185,19 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               aria-label="回首頁"
               title="回首頁"
             >
-              <LogoIcon className="w-7 h-7" />
+              <img src="logo-icon.png" alt="" className="w-9 h-9 object-contain" />
             </a>
             <h1 className="text-base font-bold text-slate-800 min-w-0 leading-snug break-words line-clamp-2">
               {trip.name}
               {trip.destination && <span> · {trip.destination}</span>}
+              {!trip.startDate && trip.approxDays && <span> · 約{trip.approxDays}天（日期未定）</span>}
             </h1>
           </div>
           <FontSizeButton />
         </div>
-        <nav className="max-w-3xl mx-auto px-4 flex gap-1 overflow-x-auto">
+        {/* 手機上（< sm）改用畫面下方的 <BottomNav/>，拇指比較好點到；
+            網頁版（>= sm）維持原本頂端這排，滑鼠操作、螢幕夠寬，固定在底部反而佔空間。 */}
+        <nav className="hidden sm:flex max-w-3xl mx-auto px-4 gap-1 overflow-x-auto">
           {TABS.map(function (tab) {
             const isActive = tab.key === activeTab;
             return (
@@ -202,7 +217,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
       </header>
       <div style={{ height: headerHeight }} />
 
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-24 sm:pb-6">
         {activeTab === "wishlist" && <WishlistPage tripId={tripId} trip={trip} nickname={nickname} />}
         {activeTab === "itinerary" && <ItineraryPage tripId={tripId} trip={trip} nickname={nickname} />}
         {activeTab === "map" && <MapPage tripId={tripId} trip={trip} nickname={nickname} focusItemId={focusItemId} />}
@@ -210,6 +225,8 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         {activeTab === "packing" && <PackingListPage tripId={tripId} nickname={nickname} />}
         {activeTab === "shopping" && <ShoppingPage tripId={tripId} nickname={nickname} />}
       </main>
+
+      <BottomNav tripId={tripId} activeTab={activeTab} />
 
       {showMembers && (
         <MemberListPanel

@@ -1,23 +1,6 @@
 // 手繪風 SVG 圖示集：用不完全對稱的線條、圓角筆觸模擬手繪感，取代原本的 emoji。
 // 每個都是簡單的 function component，接受 className 控制大小/顏色（用 currentColor 的部分會跟著文字顏色走）。
 
-function LogoIcon({ className }) {
-  return (
-    <svg viewBox="0 0 48 48" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M14.5,18.5 C13.5,8.5 21,7 24,7.2 C27.3,7 34.5,9 33.5,18 C33,25.5 29.5,29.5 25.5,30.8 L22.5,30.6 C18.2,29.3 15,25.8 14.5,18.5 Z"
-        fill="#fdead4" stroke="#d4611a" strokeWidth="2" strokeLinejoin="round"
-      />
-      <path d="M18.5,11 C17.3,17 17.6,24 20.3,29.5" stroke="#d4611a" strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      <path d="M24.2,8.3 C23.9,16 24.3,23.5 24,30.5" stroke="#d4611a" strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      <path d="M29.7,11.2 C31,17 30.5,24 27.9,29.3" stroke="#d4611a" strokeWidth="1.3" strokeLinecap="round" opacity="0.6" />
-      <path d="M20.5,30.5 L18.2,38" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M27.5,30.3 L29.8,38" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" />
-      <rect x="17" y="38" width="14" height="6.5" rx="1.8" fill="#fdead4" stroke="#8d3d19" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
 function PinIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -127,6 +110,16 @@ function MenuIcon({ className }) {
       <path d="M4,6.6 C8,6.2 15,6.9 20,6.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path d="M4,12.2 C9,12.7 15,11.7 20,12.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path d="M4,17.7 C8,17.2 14,18 20,17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MoreIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="5" cy="12" r="1.9" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.9" fill="currentColor" />
+      <circle cx="19" cy="12" r="1.9" fill="currentColor" />
     </svg>
   );
 }

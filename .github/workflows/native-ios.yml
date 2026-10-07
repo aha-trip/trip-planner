@@ -1,0 +1,51 @@
+name: 打包 iOS App（手動觸發，模擬器版）
+
+# 用 GitHub 提供的 macOS 虛擬機跑，你自己不需要有 Mac。
+# 但這裡只能做到「確認這個 App 在 Xcode 專案層級是建置得起來的」，
+# 產生出來的是「模擬器版」(.app)，不能裝到真的 iPhone、也不能上架 App Store——
+# 那需要 Apple Developer Program 帳號（US$99/年）+ 簽署憑證，是另一個階段的事，先不在這個流程處理。
+#
+# 平常改網頁內容不用重跑這個：App 讀的是已經部署好的網址（capacitor.config.json 的 server.url），
+# 網頁發布新版，App 重開就是新的。只有動到 App 本身設定才需要重跑。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 安裝打包工具（esbuild、Capacitor）
+        run: npm install
+
+      - name: 打包網頁版（Capacitor 需要有個 webDir 存在，雖然實際上 App 會直接讀線上網址）
+        run: npm run build
+
+      - name: 第一次執行要先建立 ios/ 專案資料夾
+        run: |
+          if [ ! -d ios ]; then
+            npx cap add ios
+          fi
+
+      - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
+        run: npx @capacitor/assets generate --ios --assetPath resources
+
+      - name: 把設定（capacitor.config.json）同步進 ios 專案
+        run: npx cap sync ios
+
+      - name: 安裝 CocoaPods 相依套件
+        working-directory: ios/App
+        run: pod install
+
+      - name: 用模擬器 SDK 建置（不簽署，只確認建置得起來）
+        working-directory: ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App \
+            -sdk iphonesimulator -configuration Debug \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build

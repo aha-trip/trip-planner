@@ -13,7 +13,7 @@ function UndoToastHost() {
   if (!toast) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-sm rounded-full shadow-lg px-4 py-2.5 flex items-center gap-3 max-w-[90vw]">
+    <div className="fixed bottom-24 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-sm rounded-full shadow-lg px-4 py-2.5 flex items-center gap-3 max-w-[90vw]">
       <span className="truncate">{toast.message}</span>
       <button
         onClick={function () {

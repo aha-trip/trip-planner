@@ -87,6 +87,41 @@
 
 用 Google 登入後，打開過的行程會同步到雲端（`users/你的帳號/trips`），換電腦或手機登入同一個帳號，首頁就看得到。**需要重新發布一次 [firestore.rules.txt](firestore.rules.txt)**（多了 `users/{userId}/trips` 這段規則），沒發布的話同步會被擋下、只會顯示這個瀏覽器自己打開過的。只有「登入之後」打開過的行程會被記錄，登入前打開過的會在你登入後第一次回首頁時，把「這台裝置上有的」補上去。
 
+## 把網頁版包裝成 iOS / Android App（ZouLa）
+
+用 [Capacitor](https://capacitorjs.com/) 把現有網頁包裝成一個可以裝在手機上的原生 App，外殼是原生的（App 圖示、啟動畫面、原生導覽手感），內容則是直接讀取已經部署好的網頁版（[capacitor.config.json](capacitor.config.json) 的 `server.url`）。這代表**平常改網頁、照原本流程發布，手機上的 App 重開就是新版，不用重新打包 App**。只有「換圖示、改 App 名稱、加新的原生功能」這種動到 App 本身的情況，才需要重新打包。
+
+- App 名稱：**ZouLa**　App ID（上架後不能改）：`io.github.ahatrip.tripplanner`
+- 圖示／啟動畫面素材在 [resources/](resources/)（`icon.png` 1024×1024、`splash.png` 2732×2732），改這兩個檔案就能換圖示
+- 你完全不需要在自己電腦裝 Android Studio、Xcode、或 Node.js 來打包——都在 GitHub 的伺服器上跑
+
+### 打包 Android（可以直接測試）
+
+1. 打開 repo 頁面 → 上方「**Actions**」分頁
+2. 左側選「**打包 Android App（手動觸發）**」
+3. 右邊「**Run workflow**」→ 選 `main` 分支 → 「**Run workflow**」
+4. 等個幾分鐘，跑完後點進那次執行紀錄，最下面「Artifacts」會有 `zoula-android-debug`，下載解壓縮拿到 `app-debug.apk`
+5. 把這個檔案傳到 Android 手機（LINE 傳檔案、雲端硬碟都可以）、點開安裝
+   - 手機第一次安裝「不是從 Google Play 來的 App」會跳出警告，要到「設定」允許安裝「不明來源」的 App（不同手機品牌路徑略有不同，手機會直接引導你去設定）
+
+這個 debug 版本可以裝到自己手機實際測試，**但還不能上架 Google Play**——上架需要另外產生一組簽署金鑰做「正式版」，等你確定要上架時再處理。
+
+### 打包 iOS（只能確認建置得起來，還不能裝到 iPhone）
+
+1. 同樣在「Actions」分頁，選「**打包 iOS App（手動觸發，模擬器版）**」→「Run workflow」
+2. 這一步只能驗證「這個 App 在 Xcode 專案層級建置成功」，產生的是模擬器版，**不能裝到真的 iPhone、也不能上架 App Store**
+3. 要裝到真的 iPhone 或上架，需要：
+   - 申請 **Apple Developer Program**（US$99/年）
+   - 用那個帳號產生簽署憑證、Provisioning Profile
+   - 這些憑證要設定進 GitHub Actions 才能自動簽署——等你申請好帳號，我再帶你走這一段
+
+### 已知還沒處理的事（誠實列出來，不是忘記）
+
+- **Google 登入在 App 裡可能會失敗**：Google 的政策會偵測「這個網頁是不是開在一個內嵌的 App 殼裡」，偵測到的話會直接拒絕登入（不是這個 App 寫錯，是 Google 刻意擋的，Facebook/LINE 內建瀏覽器也會被同樣擋下）。要在 App 裡正常使用 Google 登入，需要換成「原生登入外掛」（呼叫手機系統內建的 Google 登入，不是在網頁裡跳出登入視窗），這是下一階段要做的事。在那之前，**用暱稱加入**在 App 裡完全不受影響。
+- **App Store 審查風險**：蘋果對「只是把網頁包起來、沒有原生功能」的 App 審查比較嚴，可能會要求補充原生功能才會過（例如：真正呼叫手機相機而不是純網頁的選檔案、震動回饋、分享到其他 App 等）。Google Play 這方面審查寬鬆很多，Android 版通常不會卡在這點。
+- **還沒有自動化流程把 Android/iOS 的「原生圖示規範」(Adaptive Icon／圓角遮罩）完全做好**：目前是用同一張方形圖直接套用，手機上該有的圓角、遮罩效果會由系統自動處理，但如果要更精緻（例如 Android 的「背景+前景分層」特效），需要另外切圖，之後有需要再加。
+- **這些 workflow 檔案我沒辦法在這台電腦實際跑過一次**（這裡沒有 Android SDK / Xcode），第一次在 GitHub 上真的跑，有可能需要跟著錯誤訊息再調整一兩次，是正常的，不代表設定整個是錯的。
+
 ## 匯出願望清單到 Google 地圖
 
 Google 地圖「已儲存」裡的清單沒有公開 API 可以自動建立或寫入。目前提供兩個官方支援的方式：願望清單頁的「匯出到 Google 地圖」下載 CSV，匯入 Google My Maps 一次建出整張地圖；或每個地點卡片上的「在 Google 地圖開啟／儲存到清單」，開啟後自己按「儲存」選清單。

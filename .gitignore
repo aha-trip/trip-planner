@@ -1,0 +1,10 @@
+# 網頁版打包輸出（GitHub Actions 每次自動重新產生，不用進版本控制）
+dist/
+node_modules/
+
+# Capacitor 原生專案資料夾：也是 CI 每次重新產生（npx cap add），
+# 不進版本控制可以避免兩光的原生建置檔案把 repo 弄得又大又亂、也不會有合併衝突。
+# 真的要在自己電腦用 Android Studio / Xcode 打開調整原生設定時，本機會有這兩個資料夾，
+# 那是正常的，只是不要 commit 它們。
+android/
+ios/

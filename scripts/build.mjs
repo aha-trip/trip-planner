@@ -9,7 +9,7 @@
 // 2. 用 esbuild 把接起來的內容做 JSX 轉譯 + 壓縮，輸出成一個 bundle 檔。
 // 3. 產生正式版的 index.html：把本機逐一載入 script 的那一段，換成一行載入 bundle，
 //    其餘（Tailwind/Firebase/MapLibre 等 CDN、config.js）原封不動。
-// 4. 把 dist/ 準備成可以直接發布的樣子（index.html、bundle、config.js、favicon.svg 等靜態檔）。
+// 4. 把 dist/ 準備成可以直接發布的樣子（index.html、bundle、config.js、favicon.png 等靜態檔）。
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -87,7 +87,7 @@ function buildProdIndexHtml(html, bundleFileName) {
 }
 
 function copyStaticAssets() {
-  const candidates = ["config.js", "favicon.svg", "manifest.json", "icon-192.png", "icon-512.png"];
+  const candidates = ["config.js", "favicon.png", "logo-icon.png", "manifest.json", "icon-192.png", "icon-512.png"];
   candidates.forEach(function (name) {
     const src = join(root, name);
     if (existsSync(src)) copyFileSync(src, join(distDir, name));

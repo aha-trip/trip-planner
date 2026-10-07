@@ -1,3 +1,9 @@
+const HOME_FEATURE_HIGHLIGHTS = [
+  { Icon: HeartListIcon, label: "願望清單" },
+  { Icon: CalendarIcon, label: "排行程" },
+  { Icon: BagIcon, label: "購物清單" },
+];
+
 // 首頁：列出之前建立/打開過的行程，也能建立新行程
 function Home() {
   const auth = useAuth();
@@ -7,8 +13,10 @@ function Home() {
   const recentTrips = mergeRecentTrips(localTrips, cloudTrips);
   const [name, setName] = React.useState("");
   const [destination, setDestination] = React.useState("");
+  const [dateMode, setDateMode] = React.useState("known"); // "known" | "undecided"
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
+  const [approxDays, setApproxDays] = React.useState("");
   const [creating, setCreating] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [showForm, setShowForm] = React.useState(recentTrips.length === 0);
@@ -29,14 +37,18 @@ function Home() {
       setError("請幫這趟行程取個名字");
       return;
     }
-    if (!startDate || !endDate) {
-      setError("請選擇開始和結束日期，行程需要有日期才能排每天的安排");
-      return;
+    if (dateMode === "known") {
+      if (!startDate || !endDate) {
+        setError("請選擇開始和結束日期，或改選「日期還沒定」");
+        return;
+      }
+      if (endDate < startDate) {
+        setError("結束日期不能早於開始日期");
+        return;
+      }
     }
-    if (endDate < startDate) {
-      setError("結束日期不能早於開始日期");
-      return;
-    }
+
+    const parsedApproxDays = parseInt(approxDays, 10);
 
     setCreating(true);
     setError(null);
@@ -47,8 +59,9 @@ function Home() {
       await db.doc("trips/" + tripId).set({
         name: name.trim(),
         destination: destination.trim(),
-        startDate: startDate || null,
-        endDate: endDate || null,
+        startDate: dateMode === "known" ? (startDate || null) : null,
+        endDate: dateMode === "known" ? (endDate || null) : null,
+        approxDays: dateMode === "undecided" && parsedApproxDays > 0 ? parsedApproxDays : null,
         lat: null,
         lng: null,
         creatorDeviceId: getDeviceId(),
@@ -56,7 +69,13 @@ function Home() {
         accessMode: "link",
         createdAt: firebase.firestore.Timestamp.now(),
       });
-      recordRecentTrip(tripId, { name: name.trim(), destination: destination.trim() });
+      recordRecentTrip(tripId, {
+        name: name.trim(),
+        destination: destination.trim(),
+        startDate: dateMode === "known" ? (startDate || null) : null,
+        endDate: dateMode === "known" ? (endDate || null) : null,
+        approxDays: dateMode === "undecided" && parsedApproxDays > 0 ? parsedApproxDays : null,
+      });
       window.location.hash = "#/trip/" + tripId + "/wishlist";
     } catch (err) {
       console.error(err);
@@ -66,9 +85,7 @@ function Home() {
     }
   }
 
-  function handleRemoveRecent(e, tripId) {
-    e.preventDefault();
-    e.stopPropagation();
+  function handleRemoveRecent(tripId) {
     if (!window.confirm("從這份清單移除？（不會刪除行程本身，之後還是可以用連結打開）")) return;
     removeRecentTrip(tripId);
     Promise.resolve(cloudUid ? removeRecentTripFromCloud(cloudUid, tripId) : null).then(function () {
@@ -86,7 +103,7 @@ function Home() {
         </div>
         <div className="text-center mb-2">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <LogoIcon className="w-9 h-9" />
+            <img src="logo-icon.png" alt="" className="w-9 h-9 object-contain" />
             <h1 className="text-2xl font-bold text-slate-800">旅遊規劃</h1>
           </div>
           <p className="text-slate-500 text-sm">建立一趟行程，把連結分享給大家一起編輯</p>
@@ -105,26 +122,41 @@ function Home() {
             <div className="space-y-2">
               {recentTrips.map(function (t) {
                 return (
-                  <a
+                  <TripListItem
                     key={t.tripId}
-                    href={"#/trip/" + t.tripId + "/wishlist"}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-amber-100 hover:border-brand-400 px-3 py-2 transition"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">{t.name}</p>
-                      {t.destination && <p className="text-xs text-slate-400 truncate">{t.destination}</p>}
-                    </div>
-                    <button
-                      onClick={function (e) { handleRemoveRecent(e, t.tripId); }}
-                      className="shrink-0 text-xs text-slate-300 hover:text-red-500"
-                      title="從清單移除"
-                    >
-                      ✕
-                    </button>
-                  </a>
+                    trip={t}
+                    onRemove={function () { handleRemoveRecent(t.tripId); }}
+                  />
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {recentTrips.length === 0 ? (
+          <div className="bg-white/70 rounded-2xl p-5 text-center space-y-3">
+            <p className="text-slate-600 text-sm leading-relaxed">
+              不用再開十個對話串兜行程<br />一個連結，願望清單、排行程、購物清單一起搞定
+            </p>
+            <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+              {HOME_FEATURE_HIGHLIGHTS.map(function (f) {
+                return (
+                  <div key={f.label} className="bg-white/80 rounded-xl py-2.5 flex flex-col items-center gap-1">
+                    <f.Icon className="w-5 h-5 text-brand-600" />
+                    <span className="text-[11px] text-slate-600">{f.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <a href="#/demo" className="inline-block text-sm text-brand-600 hover:underline font-medium">
+              👀 看範例行程
+            </a>
+          </div>
+        ) : (
+          <div className="text-right -mt-2">
+            <a href="#/demo" className="text-xs text-slate-400 hover:text-brand-600 hover:underline">
+              看範例行程
+            </a>
           </div>
         )}
 
@@ -156,29 +188,71 @@ function Home() {
                   placeholder="例如：日本東京"
                 />
               </div>
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">開始日期 *</label>
-                  <input
-                    type="date"
-                    required
-                    className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                    value={startDate}
-                    onChange={function (e) { setStartDate(e.target.value); }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">結束日期 *</label>
-                  <input
-                    type="date"
-                    required
-                    className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                    value={endDate}
-                    onChange={function (e) { setEndDate(e.target.value); }}
-                  />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">日期</label>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={function () { setDateMode("known"); }}
+                    className={
+                      "flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition " +
+                      (dateMode === "known" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
+                    }
+                  >
+                    知道確切日期
+                  </button>
+                  <button
+                    type="button"
+                    onClick={function () { setDateMode("undecided"); }}
+                    className={
+                      "flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition " +
+                      (dateMode === "undecided" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
+                    }
+                  >
+                    日期還沒定
+                  </button>
                 </div>
               </div>
-              <p className="text-xs text-slate-400 -mt-2">* 要先設定天數，願望清單裡的項目才能排進「第幾天」</p>
+
+              {dateMode === "known" ? (
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">開始日期 *</label>
+                    <input
+                      type="date"
+                      required
+                      className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      value={startDate}
+                      onChange={function (e) { setStartDate(e.target.value); }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">結束日期 *</label>
+                    <input
+                      type="date"
+                      required
+                      className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      value={endDate}
+                      onChange={function (e) { setEndDate(e.target.value); }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">大概幾天？（選填）</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    inputMode="numeric"
+                    className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    value={approxDays}
+                    onChange={function (e) { setApproxDays(e.target.value); }}
+                    placeholder="例如：5"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">之後把地點排進「行程」某一天時，再選實際日期就好</p>
+                </div>
+              )}
 
               {error && <p className="text-sm text-red-600">{error}</p>}
 

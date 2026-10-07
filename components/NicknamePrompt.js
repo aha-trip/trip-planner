@@ -1,7 +1,17 @@
-// 第一次進入行程時要求輸入暱稱（只是用來標示「誰新增的」），也可以改用 Google 登入，登入後就不用再輸入暱稱
-function NicknamePrompt({ onSubmit }) {
+// 第一次進入行程時要求輸入暱稱（只是用來標示「誰新增的」），也可以改用 Google 登入，登入後就不用再輸入暱稱。
+// 有帶 trip/tripId 的話，上面會先顯示「這是誰邀請你、什麼行程、已經有誰加入」，暱稱放在最後才問。
+function NicknamePrompt({ onSubmit, trip, tripId }) {
   const [value, setValue] = React.useState("");
   const [error, setError] = React.useState(null);
+
+  const { data: members } = useCollection(
+    tripId ? "trips/" + tripId + "/members" : null,
+    function (ref) { return ref.orderBy("lastSeenAt", "desc").limit(20); }
+  );
+  const creator = trip && trip.creatorDeviceId && members
+    ? members.find(function (m) { return m.deviceId === trip.creatorDeviceId; })
+    : null;
+  const status = trip ? getTripDateStatus(trip) : null;
 
   async function handleGoogle() {
     setError(null);
@@ -23,6 +33,27 @@ function NicknamePrompt({ onSubmit }) {
   return (
     <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm">
+        {trip && (
+          <div className="text-center mb-5 pb-5 border-b border-amber-100">
+            <p className="text-xs text-slate-400 mb-1">
+              {creator ? creator.nickname + " 邀請你一起規劃" : "有人邀請你一起規劃這趟行程"}
+            </p>
+            <p className="text-lg font-bold text-slate-800 break-words">
+              {trip.name}
+              {trip.destination && <span> · {trip.destination}</span>}
+            </p>
+            {status && (
+              <span className="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">
+                {status.text}
+              </span>
+            )}
+            {tripId && (
+              <div className="flex items-center justify-center mt-2.5">
+                <MemberAvatars tripId={tripId} limit={5} size="w-6 h-6 text-[10px]" />
+              </div>
+            )}
+          </div>
+        )}
         <h2 className="text-lg font-bold text-slate-800 mb-1">你的暱稱？</h2>
         <p className="text-sm text-slate-500 mb-4">讓大家知道是誰新增了這個行程項目</p>
         <form onSubmit={handleSubmit} className="space-y-3">

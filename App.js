@@ -7,6 +7,9 @@ function parseRoute(hash) {
     const tab = validTabs.indexOf(tripMatch[2]) >= 0 ? tripMatch[2] : "wishlist";
     return { page: "trip", tripId: tripMatch[1], tab: tab, extra: tripMatch[3] || null };
   }
+  if (path === "/demo") {
+    return { page: "demo" };
+  }
   return { page: "home" };
 }
 
@@ -30,6 +33,8 @@ function App() {
     page = <TripPrintView tripId={route.tripId} />;
   } else if (route.page === "trip") {
     page = <TripLayout tripId={route.tripId} activeTab={route.tab} focusItemId={route.extra} />;
+  } else if (route.page === "demo") {
+    page = <DemoTrip />;
   } else {
     page = <Home />;
   }

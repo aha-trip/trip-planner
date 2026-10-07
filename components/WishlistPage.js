@@ -130,7 +130,7 @@ function WishlistPage({ tripId, trip, nickname }) {
       {allItems.length > 1 && (
         <button
           onClick={scrollToAddForm}
-          className="fixed bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg flex items-center justify-center text-2xl leading-none"
+          className="fixed bottom-24 sm:bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg flex items-center justify-center text-2xl leading-none"
           aria-label="回到上面新增地點"
           title="回到上面新增地點"
         >

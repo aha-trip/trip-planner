@@ -1,0 +1,59 @@
+name: 打包 Android App（手動觸發）
+
+# 不會自動跑（不像網頁版那樣每次 push 都打包），手動觸發是因為這個流程比較重、也比較少需要重跑：
+# 平常改程式，因為 App 設定成直接讀取已經部署好的網頁（capacitor.config.json 的 server.url），
+# 改完網頁版、照平常流程發布，手機上的 App 重開就會是新版，完全不需要重新打包 App 本身。
+# 只有「換圖示／改 App 名稱／加新的原生外掛」這種動到 App 本身（不是動網頁內容）的情況，才需要重新跑這個流程。
+#
+# 跑完之後：到這次執行的頁面，最下面「Artifacts」會有一個 zoula-android-debug.zip，
+# 下載解壓縮後是 app-debug.apk，傳到 Android 手機（LINE傳檔案／雲端硬碟都可以）直接點開安裝。
+# 手機需要先在「設定」允許安裝「不明來源」的 App（一次性設定，不同手機品牌路徑略有不同，搜尋手機型號
+# + 「允許安裝未知來源應用程式」就找得到）。
+#
+# 這個 debug 版本可以直接裝到自己手機測試，但不能上架 Google Play（上架需要另外簽署「正式版」，
+# 之後真的要上架時再處理）。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 安裝打包工具（esbuild、Capacitor）
+        run: npm install
+
+      - name: 打包網頁版（Capacitor 需要有個 webDir 存在，雖然實際上 App 會直接讀線上網址）
+        run: npm run build
+
+      - name: 第一次執行要先建立 android/ 專案資料夾
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+
+      - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
+        run: npx @capacitor/assets generate --android --assetPath resources
+
+      - name: 把設定（capacitor.config.json）同步進 android 專案
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 組建 debug APK（還沒簽署正式版，先給自己手機測試用）
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zoula-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk

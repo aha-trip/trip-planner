@@ -2,11 +2,19 @@
   "name": "trip-planner-build",
   "private": true,
   "type": "module",
-  "description": "只有發布正式版才用得到的打包腳本；平常用 Live Server 開發不需要裝這些東西。",
+  "description": "只有發布正式版（網頁打包、iOS/Android 原生 App 包裝）才用得到這些工具；平常用 Live Server 開發不需要裝這些東西，GitHub Actions 會自動處理。",
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "cap:sync": "cap sync"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/splash-screen": "^6.0.2",
+    "@capacitor/status-bar": "^6.0.1",
+    "@capacitor/assets": "^3.0.5"
   }
 }

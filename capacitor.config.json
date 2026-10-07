@@ -1,0 +1,28 @@
+{
+  "appId": "io.github.ahatrip.tripplanner",
+  "appName": "ZouLa",
+  "webDir": "dist",
+  "backgroundColor": "#fbf4e6",
+  "server": {
+    "url": "https://aha-trip.github.io/trip-planner/",
+    "cleartext": false
+  },
+  "android": {
+    "backgroundColor": "#fbf4e6"
+  },
+  "ios": {
+    "backgroundColor": "#fbf4e6",
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#fbf4e6",
+      "launchAutoHide": true,
+      "launchShowDuration": 600
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#fbf4e6"
+    }
+  }
+}
