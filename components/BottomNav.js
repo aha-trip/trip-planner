@@ -16,7 +16,7 @@ const BOTTOM_NAV_OVERFLOW = [
   { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
 ];
 
-function BottomNav({ tripId, activeTab }) {
+function BottomNav({ tripId, activeTab, onOpenMembers, onShare, copied, wifiLink }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
   const wrapRef = React.useRef(null);
 
@@ -69,6 +69,38 @@ function BottomNav({ tripId, activeTab }) {
               </a>
             );
           })}
+
+          {/* 跟網頁版標題列「功能」選單同一批動作，手機版只留這一個入口，避免兩個長得很像的選單 */}
+          <button
+            type="button"
+            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
+            onClick={function () { setMoreOpen(false); onOpenMembers(); }}
+          >
+            <PeopleIcon className="w-4 h-4 text-brand-600" /> 行程成員
+          </button>
+
+          <AccountButton row={true} />
+
+          <button
+            type="button"
+            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
+            onClick={function () { setMoreOpen(false); onShare(); }}
+          >
+            <span className="w-5 text-center text-brand-600">🔗</span>
+            {copied ? "已複製連結！" : "複製分享連結"}
+          </button>
+
+          {wifiLink && (
+            <a
+              href={wifiLink.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={function () { setMoreOpen(false); }}
+              className="w-full min-h-[44px] flex items-center gap-3 px-4 text-sm text-slate-700 active:bg-amber-50"
+            >
+              <GlobeIcon className="w-4 h-4 text-brand-600" /> {wifiLink.label}
+            </a>
+          )}
         </div>
       )}
 

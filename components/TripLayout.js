@@ -7,6 +7,10 @@ const TABS = [
   { key: "shopping", label: "購物清單" },
 ];
 
+// 不是行程內部的分頁，是外部連結（esim 經銷商），網頁版排在分頁列最後面；
+// 手機版沒有獨立的分頁列空間，收進 <BottomNav/> 的「更多」選單裡。
+const WIFI_LINK = { label: "WIFI", href: "https://ahaha0610.esimart.cc/home" };
+
 function TripLayout({ tripId, activeTab, focusItemId }) {
   const { data: trip, loading, error: tripError } = useDocument("trips/" + tripId);
   const { nickname: localNickname, setNickname } = useLocalIdentity();
@@ -229,6 +233,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               </a>
             );
           })}
+          <a
+            href={WIFI_LINK.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 px-3 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700"
+          >
+            {WIFI_LINK.label}
+          </a>
         </nav>
       </header>
       <div style={{ height: headerHeight }} />
@@ -242,7 +254,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         {activeTab === "shopping" && <ShoppingPage tripId={tripId} nickname={nickname} />}
       </main>
 
-      <BottomNav tripId={tripId} activeTab={activeTab} />
+      <BottomNav
+        tripId={tripId}
+        activeTab={activeTab}
+        onOpenMembers={function () { setShowMembers(true); }}
+        onShare={copyShareLink}
+        copied={copied}
+        wifiLink={WIFI_LINK}
+      />
 
       {showMembers && (
         <MemberListPanel

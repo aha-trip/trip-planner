@@ -1,5 +1,6 @@
-// 標題列右上角的「功能」選單：行程成員、字體大小、帳號登入/登出、分享連結都收在這裡，
-// 標題列只剩 logo + 行程名稱 + 一顆按鈕，手機上不會擠。
+// 標題列右上角的「功能」選單：行程成員、帳號登入/登出、分享連結都收在這裡。
+// 只在網頁版（sm 以上）顯示——手機版把同一批動作收進畫面下方 <BottomNav/> 的「更多」選單，
+// 避免手機上同時有兩個入口長得很像的選單（這裡的跟 BottomNav 的）讓人搞混。
 function HeaderMenu({ open, setOpen, onOpenMembers, onShare, copied }) {
   const wrapRef = React.useRef(null);
 
@@ -19,7 +20,7 @@ function HeaderMenu({ open, setOpen, onOpenMembers, onShare, copied }) {
   const rowClass = "w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50";
 
   return (
-    <div className="relative shrink-0" ref={wrapRef}>
+    <div className="hidden sm:block relative shrink-0" ref={wrapRef}>
       <button
         type="button"
         onClick={function () { setOpen(!open); }}
