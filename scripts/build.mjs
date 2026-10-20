@@ -17,6 +17,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSyn
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import * as esbuild from "esbuild";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -25,6 +26,8 @@ const vendorDir = join(root, "vendor");
 
 const START_MARKER = "<!-- BUILD:LOCAL_SCRIPTS_START -->";
 const END_MARKER = "<!-- BUILD:LOCAL_SCRIPTS_END -->";
+const TAILWIND_START_MARKER = "<!-- BUILD:TAILWIND_CDN_START -->";
+const TAILWIND_END_MARKER = "<!-- BUILD:TAILWIND_CDN_END -->";
 
 // 階段 1（O1）：App 包裝成原生版之後，不能每次開啟都依賴 CDN（離線或 CDN 暫時連不上就整個打不開）。
 // 把這幾個函式庫固定版本下載好、提交進 vendor/ 資料夾（見 SETUP.md 更新流程），正式打包時
@@ -114,6 +117,34 @@ function copyStaticAssets() {
   });
 }
 
+// 階段 2（O1）：開發時用 Tailwind 的「Play CDN」版現場編譯 CSS，方便但不能用在離線的原生 App 裡
+// （沒網路連不到 cdn.tailwindcss.com，整個頁面會變成沒有任何樣式）。正式打包改用 Tailwind CLI
+// 把 tailwind.config.js 設定的內容，連同程式碼裡實際用到的 class 名稱，預先編譯成一份靜態 CSS。
+function buildTailwindCss() {
+  const cliEntry = join(root, "node_modules", "tailwindcss", "lib", "cli.js");
+  const outPath = join(distDir, "tailwind.css");
+  execFileSync(process.execPath, [
+    cliEntry,
+    "-i", join(root, "tailwind.src.css"),
+    "-o", outPath,
+    "--minify",
+  ], { stdio: "inherit", cwd: root });
+  if (!existsSync(outPath)) {
+    throw new Error("Tailwind CSS 編譯失敗，沒有產生出 dist/tailwind.css。");
+  }
+}
+
+function replaceTailwindCdnTag(html) {
+  const startIdx = html.indexOf(TAILWIND_START_MARKER);
+  const endIdx = html.indexOf(TAILWIND_END_MARKER);
+  if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) {
+    throw new Error("找不到 index.html 裡的 BUILD:TAILWIND_CDN_START/END 標記，建置中止。");
+  }
+  const before = html.slice(0, startIdx);
+  const after = html.slice(endIdx + TAILWIND_END_MARKER.length);
+  return before + '<link rel="stylesheet" href="tailwind.css" />' + after;
+}
+
 // 把 CDN 函式庫換成本機檔案：複製進 dist/vendor/，並把 index.html 裡對應的網址換成本機路徑
 function inlineVendorFiles(html) {
   const vendorOutDir = join(distDir, "vendor");
@@ -152,8 +183,10 @@ function main() {
 
   let prodHtml = buildProdIndexHtml(html, bundleFileName);
   prodHtml = inlineVendorFiles(prodHtml);
+  prodHtml = replaceTailwindCdnTag(prodHtml);
   writeFileSync(join(distDir, "index.html"), prodHtml);
 
+  buildTailwindCss();
   copyStaticAssets();
 
   console.log("完成，輸出在 dist/（bundle 檔名含內容雜湊 " + hash + "，內容沒變就不會換檔名，瀏覽器快取能正常運作；內容一變雜湊就會跟著變，不用再手動改 ?v=2）。");

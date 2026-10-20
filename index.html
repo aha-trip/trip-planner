@@ -14,9 +14,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="ZouLa" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+
+  <!--
+    開發時用 Tailwind 的「Play CDN」版，現場讀程式碼即時產生 CSS，不用建置流程、改完存檔重新整理就看得到。
+    正式打包時，build.mjs 會把 BUILD:TAILWIND_CDN_START/END 這整段換成一行 <link> 載入預先編譯好的
+    靜態 CSS（tailwind.config.js 是編譯時真正吃到的設定檔，這裡的 tailwind.config 只有開發模式會用到，
+    兩邊內容要保持一致，改了配色記得兩邊都要改）。
+  -->
+  <!-- BUILD:TAILWIND_CDN_START -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -40,6 +48,7 @@
       },
     };
   </script>
+  <!-- BUILD:TAILWIND_CDN_END -->
   <style>
     /* 手機上輸入框字體小於 16px，iOS Safari 會在點進去時自動放大整個頁面，很干擾，所以統一至少 16px */
     @media (max-width: 640px) { input, select, textarea { font-size: 16px !important; } }
