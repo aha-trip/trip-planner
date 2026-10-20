@@ -146,6 +146,29 @@ App 已經改成呼叫手機系統內建的 Google 登入（原生畫面，不�
 
 這三項都是程式碼本身的改動，不需要你額外在 Firebase／Google 那邊做任何設定，下次打包就會生效。
 
+### O1 離線函式庫（vendor/ 資料夾）
+
+正式打包（`npm run build`）時，`scripts/build.mjs` 會把 React、Firebase、MapLibre 這幾個原本從
+CDN 載入的函式庫，換成 `vendor/` 資料夾裡固定版本的本機檔案，複製進 `dist/vendor/`——這樣原生
+App 之後拿掉 `server.url`、改讀內建檔案時，不需要連網就能把整個 App 殼打開。網頁版（GitHub
+Pages）也會一起受益：不用依賴 CDN 可用性，而且通常載入更快。
+
+`vendor/` 資料夾裡的檔案是**手動下載、提交進 repo 的固定版本**，不是每次打包自動抓最新版——
+這是刻意的：版本固定下來才能確保每次打包結果一致、可驗證，不會因為 CDN 上游默默換了版本就
+突然出問題。之後如果要升級版本（例如 React 19、新版 Firebase SDK），流程是：
+
+1. 到對應的 CDN 網址（例如 `https://unpkg.com/react@19/...`）用瀏覽器開啟、另存新檔到 `vendor/`
+2. 同步修改 `index.html` 裡對應的 CDN `<script src="...">` 網址版本號
+3. 同步修改 `scripts/build.mjs` 的 `VENDOR_FILES` 清單，把 `cdnUrl` 改成新版本網址
+4. 重新 `npm run build`，確認沒有跳錯誤（`build.mjs` 會在找不到對應 vendor 檔案，或 index.html
+   裡對不到預期的 CDN 網址時主動報錯，不會默默打包出一個壞掉的版本）
+
+Google 登入用的 `accounts.google.com/gsi/client` 刻意沒有換成本機檔案：那是第三方 OAuth 腳本，
+本來就不能自行下載代管，而且原生 App 的 Google 登入走的是另一套原生外掛（見上面那節），
+不依賴這支腳本，離線時這支腳本載入失敗也不影響原生 App 的登入功能。
+
+Tailwind 現在還是用 CDN 即時編譯版，還沒換成本機版——這是接下來的階段要做的事。
+
 ### 已知還沒處理的事（誠實列出來，不是忘記）
 
 - **App Store 審查風險**：蘋果對「只是把網頁包起來、沒有原生功能」的 App 審查比較嚴（審查指南 4.2 條）。上面補的原生分享/震動/相機能降低風險，但不保證一定過審——真的要送審前，建議再加原生登入（上面那節）、以及評估要不要再加推播通知之類更有份量的原生功能。Google Play 這方面審查寬鬆很多，Android 版通常不會卡在這點。
