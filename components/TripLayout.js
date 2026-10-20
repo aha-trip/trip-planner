@@ -217,7 +217,10 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               {!trip.startDate && trip.approxDays && <span> · 約{trip.approxDays}天（日期未定）</span>}
             </h1>
           </div>
-          <FontSizeButton />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <OfflineDownloadButton tripId={tripId} trip={trip} />
+            <FontSizeButton />
+          </div>
         </div>
         {/* 手機上（< sm）改用畫面下方的 <BottomNav/>，拇指比較好點到；
             網頁版（>= sm）維持原本頂端這排，滑鼠操作、螢幕夠寬，固定在底部反而佔空間。 */}
