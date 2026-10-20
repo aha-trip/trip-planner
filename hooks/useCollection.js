@@ -58,6 +58,24 @@ function useDocument(docPath) {
       if (cancelled) return;
       unsubscribe = db.doc(docPath).onSnapshot(
         function (doc) {
+          // 讀到「不存在」而且這筆結果是從本機快取來的（不是剛跟伺服器確認過）：
+          // 不要直接相信，強制跟伺服器再核對一次，避免相信到過期的「查不到」快取
+          // （這是之前 firebase.js 關掉離線快取想避開的那個 bug，現在改成這樣處理）。
+          if (!doc.exists && usingRealFirebase && doc.metadata && doc.metadata.fromCache) {
+            db.doc(docPath).get({ source: "server" }).then(function (serverDoc) {
+              if (cancelled) return;
+              setState({
+                data: serverDoc.exists ? Object.assign({ id: serverDoc.id }, serverDoc.data()) : null,
+                loading: false,
+                error: null,
+              });
+            }).catch(function (err) {
+              // 真的離線查不到伺服器：先不要下「不存在」的結論，保留原本狀態等恢復連線後
+              // onSnapshot 自然會再送一次正確結果
+              console.warn("核對伺服器資料失敗（可能真的離線）:", err);
+            });
+            return;
+          }
           setState({
             data: doc.exists ? Object.assign({ id: doc.id }, doc.data()) : null,
             loading: false,

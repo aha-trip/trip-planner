@@ -99,6 +99,20 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
             {copied ? "已複製連結！" : "複製分享連結"}
           </button>
 
+          <button
+            type="button"
+            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
+            onClick={function () {
+              setMoreOpen(false);
+              if (window.confirm("清除本機快取並重新同步？（不會刪除任何資料，只是讓這台裝置重新跟伺服器拿一次最新內容，畫面會重新整理）")) {
+                clearFirestoreCacheAndReload();
+              }
+            }}
+          >
+            <span className="w-5 text-center text-brand-600">🧹</span>
+            清除本機快取並重新同步
+          </button>
+
           {wifiLink && (
             <a
               href={wifiLink.href}

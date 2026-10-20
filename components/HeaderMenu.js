@@ -58,6 +58,20 @@ function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, copied 
             <span className="w-5 text-center text-brand-600">🔗</span>
             {copied ? "已複製連結！" : "複製分享連結"}
           </button>
+
+          <button
+            type="button"
+            className={rowClass}
+            onClick={function () {
+              setOpen(false);
+              if (window.confirm("清除本機快取並重新同步？（不會刪除任何資料，只是讓這台裝置重新跟伺服器拿一次最新內容，畫面會重新整理）")) {
+                clearFirestoreCacheAndReload();
+              }
+            }}
+          >
+            <span className="w-5 text-center text-brand-600">🧹</span>
+            清除本機快取並重新同步
+          </button>
         </div>
       )}
     </div>

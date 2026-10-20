@@ -20,11 +20,16 @@ if (usingRealFirebase) {
   firebase.initializeApp(CONFIG.firebase);
   db = firebase.firestore();
 
-  // 離線快取（enablePersistence）先關閉：這個瀏覽器端的 IndexedDB 快取一旦存進一筆
-  // 「查不到/沒權限」的舊結果，之後即使規則已經修好、文件明明存在，同一台瀏覽器還是會
-  // 一直認定「這份資料不存在」，造成很難排查的「明明在資料庫裡卻讀不到」問題——
-  // 這正是目前在排查的那個 bug。跟拿掉 Service Worker 是同樣的取捨：開發階段要的是
-  // 「隨時都拿得到最新、最正確的資料」，離線瀏覽先讓路，等功能都穩定了再重新評估要不要加回來。
+  // 離線快取（enablePersistence）：之前關掉是因為這個瀏覽器端的 IndexedDB 快取一旦存進一筆
+  // 「查不到/沒權限」的舊結果，之後即使規則已經修好、文件明明存在，同一台瀏覽器還是會一直
+  // 認定「這份資料不存在」。真正的解法不是整個關掉快取（那樣離線就完全打不開 App），而是：
+  // 讀到「不存在」而且這筆結果是從本機快取來的（不是剛跟伺服器確認過），不要直接相信，
+  // 強制再跟伺服器核對一次——這段邏輯在 hooks/useCollection.js 的 useDocument 裡。
+  // synchronizeTabs 讓同一個瀏覽器開好幾個分頁時能共用這份快取，不會互搶。
+  db.enablePersistence({ synchronizeTabs: true }).catch(function (err) {
+    // 常見原因：無痕視窗、瀏覽器不支援 IndexedDB——離線快取就是加分項，失敗不影響 App 正常運作
+    console.warn("無法啟用離線快取（不影響正常使用）:", err && err.code);
+  });
 
   // 匿名登入偶爾會因為網路不穩失敗一次，失敗就直接放棄的話，之後所有讀取都會被規則擋掉
   // （看起來就像「這趟行程不存在」，其實只是沒登入），所以失敗要重試幾次再放棄。
@@ -70,6 +75,16 @@ if (usingCloudinary) {
   storage = firebase.storage();
 } else {
   storage = createLocalStorageBackend();
+}
+
+// 萬一離線快取真的壞掉（理論上有上面那段核對伺服器的邏輯擋著，不該發生，但留一個救援手段），
+// 讓使用者自己能修復，不用教他清瀏覽器資料。放在 HeaderMenu／BottomNav 的「更多」選單裡。
+function clearFirestoreCacheAndReload() {
+  if (!usingRealFirebase) { window.location.reload(); return Promise.resolve(); }
+  return db.terminate()
+    .then(function () { return db.clearPersistence(); })
+    .catch(function (err) { console.error("清除本機快取失敗:", err); })
+    .then(function () { window.location.reload(); });
 }
 
 // 稀疏排序值用的小工具：在 a、b 之間插入新項目的 order
