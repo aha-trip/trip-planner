@@ -17,7 +17,7 @@ const BOTTOM_NAV_OVERFLOW = [
   { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
 ];
 
-function BottomNav({ tripId, activeTab, onOpenMembers, onShare, copied, wifiLink }) {
+function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copied, wifiLink }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
   const wrapRef = React.useRef(null);
 
@@ -78,6 +78,14 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, copied, wifiLink
             onClick={function () { setMoreOpen(false); onOpenMembers(); }}
           >
             <PeopleIcon className="w-4 h-4 text-brand-600" /> 行程成員
+          </button>
+
+          <button
+            type="button"
+            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
+            onClick={function () { setMoreOpen(false); onEditTrip(); }}
+          >
+            <PencilIcon className="w-4 h-4 text-brand-600" /> 編輯行程資訊
           </button>
 
           <AccountButton row={true} />

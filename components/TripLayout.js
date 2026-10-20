@@ -21,6 +21,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   const [dismissedGooglePrompt, setDismissedGooglePrompt] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const [showMembers, setShowMembers] = React.useState(false);
+  const [showEditTrip, setShowEditTrip] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const headerVisible = useAutoHideHeader();
   const online = useOnlineStatus();
@@ -197,6 +198,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               open={menuOpen}
               setOpen={setMenuOpen}
               onOpenMembers={function () { setShowMembers(true); }}
+              onEditTrip={function () { setShowEditTrip(true); }}
               onShare={copyShareLink}
               copied={copied}
             />
@@ -261,6 +263,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         activeTab={activeTab}
         onOpenMembers={function () { setShowMembers(true); }}
         onShare={copyShareLink}
+        onEditTrip={function () { setShowEditTrip(true); }}
         copied={copied}
         wifiLink={WIFI_LINK}
       />
@@ -271,6 +274,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
           isCreator={isCreator}
           creatorDeviceId={trip.creatorDeviceId}          accessMode={googleOnly ? "google" : "link"}
           onClose={function () { setShowMembers(false); }}
+        />
+      )}
+
+      {showEditTrip && (
+        <EditTripPanel
+          tripId={tripId}
+          trip={trip}
+          onClose={function () { setShowEditTrip(false); }}
         />
       )}
     </div>
