@@ -9,9 +9,10 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
   const [notes, setNotes] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [placesActive, setPlacesActive] = React.useState(Boolean(CONFIG.googleMapsApiKey));
+  const online = useOnlineStatus();
 
   React.useEffect(function () {
-    if (!CONFIG.googleMapsApiKey || !inputRef.current) return;
+    if (!CONFIG.googleMapsApiKey || !inputRef.current || !online) return;
     const cleanup = attachPlacesAutocomplete(inputRef.current, function (place) {
       setName(place.name);
       setAddress(place.address);
@@ -54,7 +55,7 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
       <input
         ref={inputRef}
         className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-        placeholder={placesActive ? "搜尋地點名稱..." : "地點名稱"}
+        placeholder={placesActive && online ? "搜尋地點名稱..." : "地點名稱"}
         value={name}
         onChange={function (e) {
           setName(e.target.value);
@@ -70,7 +71,10 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
           onChange={function (e) { setAddress(e.target.value); }}
         />
       )}
-      {placesActive && address && <p className="text-xs text-slate-400 px-1">{address}</p>}
+      {placesActive && !online && (
+        <p className="text-xs text-slate-400 px-1">📴 離線中，先手動輸入名稱就好，連上網路後可以搜尋地點</p>
+      )}
+      {placesActive && online && address && <p className="text-xs text-slate-400 px-1">{address}</p>}
 
       <div className="flex flex-wrap gap-1.5">
         {CATEGORY_OPTIONS.map(function (c) {

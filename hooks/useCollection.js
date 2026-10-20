@@ -20,6 +20,7 @@ function useCollection(collectionPath, queryFn) {
 
       unsubscribe = ref.onSnapshot(
         function (snapshot) {
+          if (usingRealFirebase && !snapshot.metadata.fromCache) recordSync();
           const data = snapshot.docs.map(function (doc) {
             return Object.assign({ id: doc.id }, doc.data());
           });
@@ -64,6 +65,7 @@ function useDocument(docPath) {
           if (!doc.exists && usingRealFirebase && doc.metadata && doc.metadata.fromCache) {
             db.doc(docPath).get({ source: "server" }).then(function (serverDoc) {
               if (cancelled) return;
+              recordSync();
               setState({
                 data: serverDoc.exists ? Object.assign({ id: serverDoc.id }, serverDoc.data()) : null,
                 loading: false,
@@ -76,6 +78,7 @@ function useDocument(docPath) {
             });
             return;
           }
+          if (usingRealFirebase && !doc.metadata.fromCache) recordSync();
           setState({
             data: doc.exists ? Object.assign({ id: doc.id }, doc.data()) : null,
             loading: false,

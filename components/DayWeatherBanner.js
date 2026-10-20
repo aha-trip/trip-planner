@@ -25,6 +25,7 @@ function DayWeatherBanner({ tripId, date, lat, lng }) {
       "out-of-range": "超過預報範圍（只能看未來 5 天）",
       "no-data": "查無天氣資料",
       "fetch-error": "天氣資料讀取失敗",
+      "offline": "離線中，連上網路後可查看天氣",
     };
     return (
       <div className="text-xs text-slate-400 px-1">

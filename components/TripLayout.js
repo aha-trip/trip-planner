@@ -25,6 +25,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const headerVisible = useAutoHideHeader();
   const online = useOnlineStatus();
+  const lastSyncedAt = useLastSyncedAt();
   // 用 callback ref 而不是 useRef+useEffect([])：因為載入中 (loading) 那個分支還沒有 <header>，
   // 如果用空依賴陣列的 useEffect，第一次執行時 ref 可能還是 null，之後就再也不會重新量測了。
   // callback ref 保證「DOM 節點真正掛上去的當下」一定會被呼叫到，不管是不是在第一次算染。
@@ -184,7 +185,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         )}
         {!online && (
           <div className="bg-slate-100 text-slate-600 text-xs text-center py-1 px-2">
-            📴 目前離線，顯示的是上次同步的資料；你的修改會先存在這台裝置上，恢復網路後自動同步
+            📴 目前離線，顯示的是{lastSyncedAt ? formatSyncedTime(lastSyncedAt) + " " : "上次"}同步的資料；你的修改會先存在這台裝置上，恢復網路後自動同步
           </div>
         )}
         {locked && (
