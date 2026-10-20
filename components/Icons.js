@@ -145,6 +145,26 @@ function RefreshIcon({ className }) {
   );
 }
 
+function CloudIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M7.2,18.4 C4.4,18.3 2.4,16.1 2.6,13.5 C2.8,11.2 4.8,9.6 7,9.8 C7.4,6.7 10,4.4 13.1,4.6 C16.1,4.8 18.4,7.3 18.3,10.2 C20.4,10.5 21.8,12.2 21.5,14.2 C21.2,16.3 19.2,18 17,18.3 C13.8,18.6 10.3,18.5 7.2,18.4 Z"
+        stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CheckCircleIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.2,2.8 C18,2.6 21.5,7 21.2,12.3 C21,17.6 16.8,21.4 11.8,21.2 C6.7,21 2.7,17 2.8,11.8 C2.9,6.8 6.8,3 12.2,2.8 Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M7.8,12.2 L10.5,15 L16.3,8.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function GearIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">

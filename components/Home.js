@@ -93,6 +93,13 @@ function Home() {
     });
   }
 
+  function handleTripUpdated(tripId, fields) {
+    recordRecentTrip(tripId, fields);
+    Promise.resolve(cloudUid ? saveRecentTripToCloud(cloudUid, tripId, fields) : null).then(function () {
+      window.location.reload();
+    });
+  }
+
   return (
     <div className="min-h-screen w-full overflow-x-hidden relative flex items-start justify-center px-4 py-10">
       <div className="fixed inset-0 -z-10 bg-gradient-to-b from-sky-200 via-cream to-cream" />
@@ -126,6 +133,7 @@ function Home() {
                     key={t.tripId}
                     trip={t}
                     onRemove={function () { handleRemoveRecent(t.tripId); }}
+                    onUpdated={function (fields) { handleTripUpdated(t.tripId, fields); }}
                   />
                 );
               })}

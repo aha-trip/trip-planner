@@ -56,7 +56,7 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {moreOpen && (
-        <div className="absolute bottom-full left-0 right-0 mb-1 mx-3 bg-white rounded-xl shadow-lg border border-amber-100 overflow-hidden divide-y divide-amber-100">
+        <div className="absolute bottom-full right-3 mb-1 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-amber-100 overflow-hidden divide-y divide-amber-100">
           {/* 行程成員/編輯/帳號/分享/清除快取這幾個比較少用的動作，收進「設定」面板，
               不要全部攤開佔掉這個選單一大半 */}
           <button

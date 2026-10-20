@@ -39,7 +39,7 @@ function OfflineDownloadButton({ tripId, trip }) {
     }
   }
 
-  const icon = downloading ? "☁️" : info ? "✅" : "☁️";
+  const Icon = info ? CheckCircleIcon : CloudIcon;
   const label = downloading
     ? "下載中..."
     : info
@@ -54,11 +54,11 @@ function OfflineDownloadButton({ tripId, trip }) {
         aria-label={label}
         title={label}
         className={
-          "w-8 h-8 flex items-center justify-center rounded-full border text-sm transition " +
-          (info ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-white")
+          "w-8 h-8 flex items-center justify-center rounded-full border transition " +
+          (info ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-white text-slate-600")
         }
       >
-        {icon}
+        <Icon className="w-4 h-4" />
       </button>
 
       {open && (

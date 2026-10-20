@@ -2,7 +2,7 @@
 // 才會第一次出現「一天」。這會讓人誤以為行程被鎖死只能有那一天。這個面板讓使用者隨時回來
 // 補上/修改正式日期：一旦補上 startDate~endDate，「行程」分頁就會照整個日期範圍顯示所有天，
 // 不再只看已經排了項目的那幾天。欄位設計跟 Home.js 建立行程時的表單一致，維持同一套邏輯。
-function EditTripPanel({ tripId, trip, onClose }) {
+function EditTripPanel({ tripId, trip, onClose, onSaved }) {
   const [name, setName] = React.useState(trip.name || "");
   const [destination, setDestination] = React.useState(trip.destination || "");
   const [dateMode, setDateMode] = React.useState(trip.startDate ? "known" : "undecided");
@@ -31,14 +31,16 @@ function EditTripPanel({ tripId, trip, onClose }) {
     const parsedApproxDays = parseInt(approxDays, 10);
     setSaving(true);
     setError(null);
+    const saved = {
+      name: name.trim(),
+      destination: destination.trim(),
+      startDate: dateMode === "known" ? startDate : null,
+      endDate: dateMode === "known" ? endDate : null,
+      approxDays: dateMode === "undecided" && parsedApproxDays > 0 ? parsedApproxDays : null,
+    };
     try {
-      await db.doc("trips/" + tripId).update({
-        name: name.trim(),
-        destination: destination.trim(),
-        startDate: dateMode === "known" ? startDate : null,
-        endDate: dateMode === "known" ? endDate : null,
-        approxDays: dateMode === "undecided" && parsedApproxDays > 0 ? parsedApproxDays : null,
-      });
+      await db.doc("trips/" + tripId).update(saved);
+      if (onSaved) onSaved(saved);
       onClose();
     } catch (err) {
       console.error(err);

@@ -10,12 +10,21 @@ const TRIP_DATE_STATUS_STYLE = {
   none: "bg-slate-100 text-slate-400",
 };
 
-function TripListItem({ trip, onRemove }) {
+function formatTripDateRange(trip) {
+  if (!trip.startDate) return null;
+  const start = trip.startDate.slice(5).replace("-", "/");
+  const end = trip.endDate ? trip.endDate.slice(5).replace("-", "/") : start;
+  return start === end ? start : start + "–" + end;
+}
+
+function TripListItem({ trip, onRemove, onUpdated }) {
   const [dragX, setDragX] = React.useState(0);
   const [revealed, setRevealed] = React.useState(false);
+  const [showEdit, setShowEdit] = React.useState(false);
   const gestureRef = React.useRef(null); // { x, y, baseX, committed }
 
   const status = getTripDateStatus(trip);
+  const dateRangeText = formatTripDateRange(trip);
 
   function onTouchStart(e) {
     const t = e.touches[0];
@@ -93,6 +102,7 @@ function TripListItem({ trip, onRemove }) {
           <p className="text-sm font-medium text-slate-800 truncate">{trip.name}</p>
           <div className="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mt-0.5">
             {trip.destination && <span className="text-xs text-slate-400 truncate max-w-full">{trip.destination}</span>}
+            {dateRangeText && <span className="shrink-0 text-xs text-slate-400">{dateRangeText}</span>}
             <span className={"shrink-0 text-[11px] px-1.5 py-0.5 rounded-full " + TRIP_DATE_STATUS_STYLE[status.kind]}>
               {status.text}
             </span>
@@ -100,6 +110,15 @@ function TripListItem({ trip, onRemove }) {
         </div>
 
         <MemberAvatars tripId={trip.tripId} limit={4} />
+
+        <button
+          type="button"
+          onClick={function (e) { e.preventDefault(); e.stopPropagation(); setShowEdit(true); }}
+          title="編輯行程資訊"
+          className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-slate-300 hover:text-brand-600 hover:bg-brand-50"
+        >
+          <PencilIcon className="w-3.5 h-3.5" />
+        </button>
 
         {/* 網頁版滑鼠操作沒有滑動手勢，hover 才出現一個小垃圾桶取代滑動 */}
         <button
@@ -111,6 +130,15 @@ function TripListItem({ trip, onRemove }) {
           ✕
         </button>
       </a>
+
+      {showEdit && (
+        <EditTripPanel
+          tripId={trip.tripId}
+          trip={trip}
+          onClose={function () { setShowEdit(false); }}
+          onSaved={function (fields) { if (onUpdated) onUpdated(fields); }}
+        />
+      )}
     </div>
   );
 }
