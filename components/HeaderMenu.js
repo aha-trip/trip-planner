@@ -55,7 +55,7 @@ function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, copied 
           <AccountButton row={true} />
 
           <button type="button" className={rowClass} onClick={onShare}>
-            <span className="w-5 text-center text-brand-600">🔗</span>
+            <LinkIcon className="w-4 h-4 text-brand-600" />
             {copied ? "已複製連結！" : "複製分享連結"}
           </button>
 
@@ -69,7 +69,7 @@ function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, copied 
               }
             }}
           >
-            <span className="w-5 text-center text-brand-600">🧹</span>
+            <RefreshIcon className="w-4 h-4 text-brand-600" />
             清除本機快取並重新同步
           </button>
         </div>

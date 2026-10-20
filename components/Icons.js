@@ -124,6 +124,39 @@ function MoreIcon({ className }) {
   );
 }
 
+function LinkIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.6,14.3 C7.8,16 5.9,17.6 7.9,19.6 C9.8,21.5 11.5,19.9 13.2,18.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M14.4,9.6 C16.2,7.9 18,6.3 16,4.3 C14.1,2.4 12.4,4 10.7,5.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M9,15.1 L15,8.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RefreshIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.5,12.2 C4.2,7.6 8,3.8 12.5,4 C16.1,4.2 19.1,6.9 19.7,10.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16.4,6.9 L19.8,10.3 L22.6,6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19.5,11.8 C19.8,16.4 16,20.2 11.5,20 C7.9,19.8 4.9,17.1 4.3,13.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M7.6,17.1 L4.2,13.7 L1.4,17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function GearIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="3.3" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M12,3.2 L12.9,6 M12,20.8 L11.1,18 M20.8,12 L18,11.1 M3.2,12 L6,12.9 M18.4,5.6 L16.3,7.7 M5.6,18.4 L7.7,16.3 M18.4,18.4 L16.3,16.3 M5.6,5.6 L7.7,7.7"
+        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function PencilIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">

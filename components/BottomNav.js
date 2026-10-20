@@ -21,6 +21,7 @@ const BOTTOM_NAV_OVERFLOW = [
 
 function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copied, wifiLink }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
+  const [showSettings, setShowSettings] = React.useState(false);
   const wrapRef = React.useRef(null);
 
   // 切到其他分頁後，下次打開這個元件時「更多」選單不該還留著上次的開啟狀態
@@ -56,46 +57,14 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
     >
       {moreOpen && (
         <div className="absolute bottom-full left-0 right-0 mb-1 mx-3 bg-white rounded-xl shadow-lg border border-amber-100 overflow-hidden divide-y divide-amber-100">
-          {/* 跟網頁版標題列「功能」選單同一批動作，手機版只留這一個入口，避免兩個長得很像的選單 */}
+          {/* 行程成員/編輯/帳號/分享/清除快取這幾個比較少用的動作，收進「設定」面板，
+              不要全部攤開佔掉這個選單一大半 */}
           <button
             type="button"
             className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
-            onClick={function () { setMoreOpen(false); onOpenMembers(); }}
+            onClick={function () { setMoreOpen(false); setShowSettings(true); }}
           >
-            <PeopleIcon className="w-4 h-4 text-brand-600" /> 行程成員
-          </button>
-
-          <button
-            type="button"
-            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
-            onClick={function () { setMoreOpen(false); onEditTrip(); }}
-          >
-            <PencilIcon className="w-4 h-4 text-brand-600" /> 編輯行程資訊
-          </button>
-
-          <AccountButton row={true} />
-
-          <button
-            type="button"
-            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
-            onClick={function () { setMoreOpen(false); onShare(); }}
-          >
-            <span className="w-5 text-center text-brand-600">🔗</span>
-            {copied ? "已複製連結！" : "複製分享連結"}
-          </button>
-
-          <button
-            type="button"
-            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
-            onClick={function () {
-              setMoreOpen(false);
-              if (window.confirm("清除本機快取並重新同步？（不會刪除任何資料，只是讓這台裝置重新跟伺服器拿一次最新內容，畫面會重新整理）")) {
-                clearFirestoreCacheAndReload();
-              }
-            }}
-          >
-            <span className="w-5 text-center text-brand-600">🧹</span>
-            清除本機快取並重新同步
+            <GearIcon className="w-4 h-4 text-brand-600" /> 設定
           </button>
 
           {wifiLink && (
@@ -155,6 +124,16 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
         <MoreIcon className="w-5 h-5" />
         更多
       </button>
+
+      {showSettings && (
+        <SettingsPanel
+          onOpenMembers={onOpenMembers}
+          onEditTrip={onEditTrip}
+          onShare={onShare}
+          copied={copied}
+          onClose={function () { setShowSettings(false); }}
+        />
+      )}
     </nav>
   );
 }
