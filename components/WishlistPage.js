@@ -37,6 +37,8 @@ function WishlistPage({ tripId, trip, nickname }) {
 
   return (
     <div className="space-y-6 relative">
+      <OfflineDownloadButton tripId={tripId} trip={trip} />
+
       <div id="wishlist-add-form">
         <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-1.5">
           <PinIcon className="w-5 h-5 text-brand-600" /> 新增想去的地方
