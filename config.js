@@ -24,4 +24,9 @@ const CONFIG = {
   googleClientId: "940853643787-4s4fr10vepnu0g0sgmheeu6i790kji27.apps.googleusercontent.com",
   googleMapsApiKey: "",
   openWeatherApiKey: "0037dd28a550d71e31a947738b8b30cc",
+  // 預約規則庫後台（#/admin/booking-rules）只給這個 Google 帳號的 email 進去維護，
+  // 其他人用 Google 登入打開這個網址也會被擋在外面。改成你自己的 Google 帳號 email，
+  // 同時要去 firestore.rules.txt 把對應的 email 也改掉、重新貼到 Firebase Console 發布規則，
+  // 兩邊要一致才會生效。
+  adminEmail: "amber.huang0610@gmail.com",
 };

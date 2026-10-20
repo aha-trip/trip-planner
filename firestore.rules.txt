@@ -24,6 +24,13 @@ service cloud.firestore {
       return request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
+    // 只有這個 email 能寫入預約規則庫後台（#/admin/booking-rules）。改這裡要同步改
+    // config.js 的 adminEmail，兩邊要一致——這個規則才是真正擋住別人的關卡，config.js
+    // 那邊只是畫面上判斷要不要顯示後台頁面，光改畫面不會真的保護資料。
+    function isAdmin() {
+      return signedIn() && isGoogleUser() && request.auth.token.email == 'amber.huang0610@gmail.com';
+    }
+
     // 這個行程資料（文件內容）目前允許這個使用者寫入嗎？
     function tripAllowsWrite(trip) {
       return trip.get('accessMode', 'link') != 'google' || isGoogleUser();
@@ -69,6 +76,12 @@ service cloud.firestore {
         allow write: if signedIn()
           && tripAllowsWrite(get(/databases/$(database)/documents/trips/$(tripId)).data);
       }
+    }
+
+    // 預約規則庫（行前任務雷達用）：全站共用、所有登入的人都能讀，只有管理員能寫
+    match /bookingRules/{ruleId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
   }
 }

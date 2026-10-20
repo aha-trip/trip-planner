@@ -10,6 +10,9 @@ function parseRoute(hash) {
   if (path === "/demo") {
     return { page: "demo" };
   }
+  if (path === "/admin/booking-rules") {
+    return { page: "admin-booking-rules" };
+  }
   return { page: "home" };
 }
 
@@ -35,6 +38,8 @@ function App() {
     page = <TripLayout tripId={route.tripId} activeTab={route.tab} focusItemId={route.extra} />;
   } else if (route.page === "demo") {
     page = <DemoTrip />;
+  } else if (route.page === "admin-booking-rules") {
+    page = <AdminBookingRulesPage />;
   } else {
     page = <Home />;
   }
@@ -50,3 +55,4 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
 initOtaUpdate();
+initBookingRulesSync();
