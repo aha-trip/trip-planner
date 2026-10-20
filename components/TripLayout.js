@@ -1,6 +1,7 @@
 const TABS = [
   { key: "wishlist", label: "願望清單" },
   { key: "itinerary", label: "行程" },
+  { key: "prep", label: "準備" },
   { key: "map", label: "地圖" },
   { key: "expenses", label: "花費" },
   { key: "packing", label: "行李" },
@@ -248,6 +249,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
       <main className="max-w-3xl mx-auto px-4 py-6 pb-24 sm:pb-6">
         {activeTab === "wishlist" && <WishlistPage tripId={tripId} trip={trip} nickname={nickname} />}
         {activeTab === "itinerary" && <ItineraryPage tripId={tripId} trip={trip} nickname={nickname} />}
+        {activeTab === "prep" && <PrepPage tripId={tripId} trip={trip} nickname={nickname} />}
         {activeTab === "map" && <MapPage tripId={tripId} trip={trip} nickname={nickname} focusItemId={focusItemId} />}
         {activeTab === "expenses" && <ExpensesPage tripId={tripId} nickname={nickname} />}
         {activeTab === "packing" && <PackingListPage tripId={tripId} nickname={nickname} />}

@@ -7,6 +7,7 @@
 const BOTTOM_NAV_PRIMARY = [
   { key: "wishlist", label: "願望", Icon: HeartListIcon },
   { key: "itinerary", label: "行程", Icon: CalendarIcon },
+  { key: "prep", label: "準備", Icon: CompassIcon },
   { key: "map", label: "地圖", Icon: PinIcon },
   { key: "expenses", label: "花費", Icon: ReceiptIcon },
 ];
