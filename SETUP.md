@@ -89,7 +89,7 @@
 
 ## 把網頁版包裝成 iOS / Android App（ZouLa）
 
-用 [Capacitor](https://capacitorjs.com/) 把現有網頁包裝成一個可以裝在手機上的原生 App，外殼是原生的（App 圖示、啟動畫面、原生導覽手感），內容則是直接讀取已經部署好的網頁版（[capacitor.config.json](capacitor.config.json) 的 `server.url`）。這代表**平常改網頁、照原本流程發布，手機上的 App 重開就是新版，不用重新打包 App**。只有「換圖示、改 App 名稱、加新的原生功能」這種動到 App 本身的情況，才需要重新打包。
+用 [Capacitor](https://capacitorjs.com/) 把現有網頁包裝成一個可以裝在手機上的原生 App，外殼是原生的（App 圖示、啟動畫面、原生導覽手感）。網頁內容整個打包進 App 本體——**離線也打得開**，不依賴連線才看得到畫面。平常改網頁內容一樣不用重新打包 App：靠的是內建的「空中更新」機制，App 開啟時自己悄悄檢查、下載、套用最新的網頁內容（見下面「空中更新」那節），使用者不用重新下載安裝。只有「換圖示、改 App 名稱、加新的原生外掛、改 `capacitor.config.json` 設定」這種動到 App 本身的情況，才需要重新打包、重新安裝新的 apk/模擬器版。
 
 - App 名稱：**ZouLa**　App ID（上架後不能改）：`io.github.ahatrip.tripplanner`
 - 圖示／啟動畫面素材在 [resources/](resources/)（`icon.png` 1024×1024、`splash.png` 2732×2732），改這兩個檔案就能換圖示
@@ -167,12 +167,24 @@ Google 登入用的 `accounts.google.com/gsi/client` 刻意沒有換成本機檔
 本來就不能自行下載代管，而且原生 App 的 Google 登入走的是另一套原生外掛（見上面那節），
 不依賴這支腳本，離線時這支腳本載入失敗也不影響原生 App 的登入功能。
 
-Tailwind 現在還是用 CDN 即時編譯版，還沒換成本機版——這是接下來的階段要做的事。
+Tailwind 也已經換成預先編譯好的靜態 CSS（`tailwind.config.js` + `tailwind.src.css`，`npm run build` 時用 Tailwind CLI 編譯成 `dist/tailwind.css`），不再依賴 CDN 即時編譯版。到這裡，`dist/` 輸出已經完全不依賴 CDN 了，只剩 Google 登入用的 `accounts.google.com/gsi/client`（刻意保留，理由見上面）。
+
+### 空中更新（OTA）
+
+`capacitor.config.json` 已經拿掉 `server.url`，App 改讀整個包進本體的網頁內容（上面 O1 那節做的事）。這代表往後**網頁內容更新要讓已經裝好的 App 跟著更新，不能再靠「App 重開自動讀到新網址」這招**，得另外想辦法——用的是開源外掛 [`@capgo/capacitor-updater`](https://github.com/Cap-go/capacitor-updater)（完全自己架設，沒有用 Capgo 的付費雲端服務，不會額外產生費用）：
+
+- `npm run build` 最後一步（`scripts/build.mjs` 的 `buildOtaBundle`）會把整個 `dist/` 打包成 `dist/update-bundle.zip`，連同一份只有 `version`／`url` 兩個欄位的 `dist/update-manifest.json`，一起照原本流程部署到 GitHub Pages（`deploy.yml` 本來就是整個 `dist/` 都上傳，不用另外設定）
+- 版本號直接用網頁 bundle 的內容雜湊，程式碼真的變了版本號才會變，不用手動維護版本號
+- App 裡的 [lib/otaUpdate.js](lib/otaUpdate.js) 負責檢查/下載/套用：App 使用中背景下載新版本，切到背景（使用者按 Home 鍵）時才真的套用並重新整理——使用者不會看到重新整理的過程，下次回到 App 就是新版
+- 外掛內建安全機制：每次 App 成功開啟都要呼叫 `notifyAppReady()`，沒呼叫的話外掛會認定這個版本「開不起來」，下次自動回滾到上一個能用的版本（或是原本內建的版本），所以就算某次空中更新的內容本身有問題，也不會真的把 App 卡死在打不開的狀態
+
+**這塊是整個改動裡風險最高的一塊**，我在這台電腦只能做到：`npm run build` 本機實際跑過（確認 `update-bundle.zip`／`update-manifest.json` 產生正確、zip 解壓縮後 `index.html` 確實在根目錄）、`npx cap add android` / `npx cap add ios` 本機實際跑過（確認外掛有被 Capacitor 正確辨識、原生專案能生成），但沒辦法真的建置、安裝、打開來測試空中更新實際運作（沒有 Android SDK／Xcode／真機）。照之前 Google 登入的經驗，第一次在 GitHub Actions 上真的打包安裝，很有可能需要跟著錯誤訊息再調整一兩輪，是正常的。
 
 ### 已知還沒處理的事（誠實列出來，不是忘記）
 
-- **App Store 審查風險**：蘋果對「只是把網頁包起來、沒有原生功能」的 App 審查比較嚴（審查指南 4.2 條）。上面補的原生分享/震動/相機能降低風險，但不保證一定過審——真的要送審前，建議再加原生登入（上面那節）、以及評估要不要再加推播通知之類更有份量的原生功能。Google Play 這方面審查寬鬆很多，Android 版通常不會卡在這點。
+- **App Store 審查風險**：蘋果對「只是把網頁包起來、沒有原生功能」的 App 審查比較嚴（審查指南 4.2 條）。上面補的原生分享/震動/相機/離線可用能降低風險，但不保證一定過審——真的要送審前，建議再加原生登入（上面那節）、以及評估要不要再加推播通知之類更有份量的原生功能。Google Play 這方面審查寬鬆很多，Android 版通常不會卡在這點。
 - **還沒有自動化流程把 Android/iOS 的「原生圖示規範」(Adaptive Icon／圓角遮罩）完全做好**：目前是用同一張方形圖直接套用，手機上該有的圓角、遮罩效果會由系統自動處理，但如果要更精緻（例如 Android 的「背景+前景分層」特效），需要另外切圖，之後有需要再加。
+- **iOS 的隱私權清單（PrivacyInfo.xcprivacy）還沒補**：`@capgo/capacitor-updater` 這個外掛用到的某個系統 API（本機儲存設定值）照 Apple 規定要在這份清單裡申報用途，但要把這個檔案正確加進 Xcode 專案（不是單純把檔案複製進資料夾就好，還要在專案設定裡登記成建置資源），需要在真的有 Xcode 的環境手動加一次、存檔案進 `native-config/`，之後 CI 才能自動接上去（跟 google-services.json 那套做法一樣）——這件事要等有 Mac 的時候再處理，現在沒補不影響打包測試，只有真的要送 App Store 審查時才需要補齊。
 - **Google 登入的原生外掛、CI 自動產生 debug 金鑰、自動接上 google-services.json/plist 這整套，我沒辦法在這台電腦實際跑過一次**（這裡沒有 Android SDK / Xcode / 真的 Google 帳號可以測試登入），第一次在 GitHub 上真的跑，很有可能需要跟著錯誤訊息再調整一兩次，是正常的，不代表設定整個是錯的——有錯誤訊息直接貼給我，照訊息修會比較快。
 
 ## 匯出願望清單到 Google 地圖

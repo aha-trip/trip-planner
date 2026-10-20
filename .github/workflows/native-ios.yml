@@ -5,8 +5,9 @@ name: 打包 iOS App（手動觸發，模擬器版）
 # 產生出來的是「模擬器版」(.app)，不能裝到真的 iPhone、也不能上架 App Store——
 # 那需要 Apple Developer Program 帳號（US$99/年）+ 簽署憑證，是另一個階段的事，先不在這個流程處理。
 #
-# 平常改網頁內容不用重跑這個：App 讀的是已經部署好的網址（capacitor.config.json 的 server.url），
-# 網頁發布新版，App 重開就是新的。只有動到 App 本身設定才需要重跑。
+# 平常改網頁內容不用重跑這個：App 現在是把網頁內容整個包進 App 本體（離線也打得開），
+# 靠的是內建的空中更新機制，開啟時自己檢查、悄悄下載套用最新網頁內容（見 lib/otaUpdate.js），
+# 不用使用者重新下載安裝。只有動到 App 本身設定（圖示、原生外掛、capacitor.config.json）才需要重跑。
 
 on:
   workflow_dispatch:
@@ -24,7 +25,7 @@ jobs:
       - name: 安裝打包工具（esbuild、Capacitor）
         run: npm install
 
-      - name: 打包網頁版（Capacitor 需要有個 webDir 存在，雖然實際上 App 會直接讀線上網址）
+      - name: 打包網頁版（這份輸出會整個包進 App 本體，也會順便產生空中更新包）
         run: npm run build
 
       - name: 第一次執行要先建立 ios/ 專案資料夾

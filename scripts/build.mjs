@@ -13,12 +13,16 @@
 //    App 殼打開，不是每個 CDN 資源都換，細節見 VENDOR_FILES 上面的註解。
 // 5. 把 dist/ 準備成可以直接發布的樣子（index.html、bundle、config.js、favicon.png 等靜態檔）。
 
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, rmSync, createWriteStream } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import * as esbuild from "esbuild";
+// archiver 是 CommonJS 套件，用 createRequire 載入比較穩，避免不同 Node 版本對 ESM/CJS
+// 互通性判斷不一致，誤判成「沒有 default export」。
+const archiver = createRequire(import.meta.url)("archiver");
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const distDir = join(root, "dist");
@@ -109,6 +113,42 @@ function buildProdIndexHtml(html, bundleFileName) {
   return before + '<script src="' + bundleFileName + '"></script>' + after;
 }
 
+// 階段 3（O1）：空中更新（OTA）用的更新包。原生 App 拿掉 server.url 之後，改讀內建版本，
+// 之後網頁內容更新要讓已安裝的 App 跟著更新，靠的就是這個：把 dist/ 整個打包成一個 zip，
+// 連同一份極簡的版本資訊（manifest），一起發布到 GitHub Pages（deploy.yml 本來就是整個 dist/
+// 都上傳，不用額外設定）。App 裡的 lib/otaUpdate.js 會定期讀這份 manifest，有新版本就下載套用。
+//
+// 版本號直接用 bundle 的內容雜湊（跟瀏覽器快取用的是同一個雜湊）：程式碼真的變了，雜湊才會變，
+// 不用額外維護版本號、也不會有「忘記 bump 版本號」這種人為疏失。
+const OTA_PUBLIC_BASE_URL = "https://aha-trip.github.io/trip-planner/";
+
+function buildOtaBundle(hash) {
+  const tmpZipPath = join(root, ".ota-tmp-update-bundle.zip");
+  if (existsSync(tmpZipPath)) rmSync(tmpZipPath);
+
+  return new Promise(function (resolve, reject) {
+    const output = createWriteStream(tmpZipPath);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+    output.on("close", resolve);
+    archive.on("error", reject);
+    archive.pipe(output);
+    // 把 dist/ 資料夾「裡面的內容」攤平放進 zip 根目錄（第二個參數 false），
+    // 這樣解壓縮後 index.html 會直接在最外層，符合外掛對更新包格式的要求。
+    archive.directory(distDir, false);
+    archive.finalize();
+  }).then(function () {
+    copyFileSync(tmpZipPath, join(distDir, "update-bundle.zip"));
+    rmSync(tmpZipPath);
+
+    const manifest = {
+      version: hash,
+      url: OTA_PUBLIC_BASE_URL + "update-bundle.zip",
+      builtAt: new Date().toISOString(),
+    };
+    writeFileSync(join(distDir, "update-manifest.json"), JSON.stringify(manifest, null, 2));
+  });
+}
+
 function copyStaticAssets() {
   const candidates = ["config.js", "favicon.png", "logo-icon.png", "manifest.json", "icon-192.png", "icon-512.png"];
   candidates.forEach(function (name) {
@@ -167,7 +207,7 @@ function inlineVendorFiles(html) {
   return result;
 }
 
-function main() {
+async function main() {
   rmSync(distDir, { recursive: true, force: true });
   mkdirSync(distDir, { recursive: true });
 
@@ -189,7 +229,14 @@ function main() {
   buildTailwindCss();
   copyStaticAssets();
 
+  // 一定要排在最後：OTA 更新包要打包「這次 dist/ 最終的完整內容」，前面任何一步漏掉都會讓
+  // 更新包裡少東西
+  await buildOtaBundle(hash);
+
   console.log("完成，輸出在 dist/（bundle 檔名含內容雜湊 " + hash + "，內容沒變就不會換檔名，瀏覽器快取能正常運作；內容一變雜湊就會跟著變，不用再手動改 ?v=2）。");
 }
 
-main();
+main().catch(function (err) {
+  console.error(err);
+  process.exit(1);
+});

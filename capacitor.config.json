@@ -3,10 +3,6 @@
   "appName": "ZouLa",
   "webDir": "dist",
   "backgroundColor": "#fbf4e6",
-  "server": {
-    "url": "https://aha-trip.github.io/trip-planner/",
-    "cleartext": false
-  },
   "android": {
     "backgroundColor": "#fbf4e6"
   },
@@ -27,6 +23,9 @@
     "FirebaseAuthentication": {
       "skipNativeAuth": false,
       "providers": ["google.com"]
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": false
     }
   }
 }
