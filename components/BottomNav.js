@@ -21,16 +21,21 @@ const BOTTOM_NAV_OVERFLOW = [
 
 function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copied, wifiLink }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
-  const [showSettings, setShowSettings] = React.useState(false);
+  const [settingsView, setSettingsView] = React.useState(false); // 同一個選單框內，切到「設定」子清單
   const wrapRef = React.useRef(null);
 
+  function closeMenu() {
+    setMoreOpen(false);
+    setSettingsView(false);
+  }
+
   // 切到其他分頁後，下次打開這個元件時「更多」選單不該還留著上次的開啟狀態
-  React.useEffect(function () { setMoreOpen(false); }, [activeTab]);
+  React.useEffect(function () { closeMenu(); }, [activeTab]);
 
   React.useEffect(function () {
     if (!moreOpen) return;
     function onOutside(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setMoreOpen(false);
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) closeMenu();
     }
     document.addEventListener("mousedown", onOutside);
     document.addEventListener("touchstart", onOutside);
@@ -57,45 +62,58 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
     >
       {moreOpen && (
         <div className="absolute bottom-full right-3 mb-1 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-amber-100 overflow-hidden divide-y divide-amber-100">
-          {/* 行程成員/編輯/帳號/分享/清除快取這幾個比較少用的動作，收進「設定」面板，
-              不要全部攤開佔掉這個選單一大半 */}
-          <button
-            type="button"
-            className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
-            onClick={function () { setMoreOpen(false); setShowSettings(true); }}
-          >
-            <GearIcon className="w-4 h-4 text-brand-600" /> 設定
-          </button>
-
-          {wifiLink && (
-            <a
-              href={wifiLink.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={function () { setMoreOpen(false); }}
-              className="w-full min-h-[44px] flex items-center gap-3 px-4 text-sm text-slate-700 active:bg-amber-50"
-            >
-              <GlobeIcon className="w-4 h-4 text-brand-600" /> {wifiLink.label}
-            </a>
-          )}
-
-          {/* 其他行程分頁放最下面，離底部導覽列最近、最好點 */}
-          {BOTTOM_NAV_OVERFLOW.map(function (tab) {
-            const isActive = tab.key === activeTab;
-            return (
-              <a
-                key={tab.key}
-                href={"#/trip/" + tripId + "/" + tab.key}
-                onClick={function () { setMoreOpen(false); }}
-                className={
-                  "w-full min-h-[44px] flex items-center gap-3 px-4 text-sm " +
-                  (isActive ? "text-brand-700 bg-brand-50" : "text-slate-700 active:bg-amber-50")
-                }
+          {settingsView ? (
+            <SettingsPanel
+              onOpenMembers={onOpenMembers}
+              onEditTrip={onEditTrip}
+              onShare={onShare}
+              copied={copied}
+              onBack={function () { setSettingsView(false); }}
+              onClose={closeMenu}
+            />
+          ) : (
+            <React.Fragment>
+              {/* 行程成員/編輯/帳號/分享/清除快取這幾個比較少用的動作，收進「設定」子清單，
+                  不要全部攤開佔掉這個選單一大半 */}
+              <button
+                type="button"
+                className="w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50"
+                onClick={function () { setSettingsView(true); }}
               >
-                <tab.Icon className="w-4 h-4" /> {tab.label}
-              </a>
-            );
-          })}
+                <GearIcon className="w-4 h-4 text-brand-600" /> 設定
+              </button>
+
+              {wifiLink && (
+                <a
+                  href={wifiLink.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={closeMenu}
+                  className="w-full min-h-[44px] flex items-center gap-3 px-4 text-sm text-slate-700 active:bg-amber-50"
+                >
+                  <GlobeIcon className="w-4 h-4 text-brand-600" /> {wifiLink.label}
+                </a>
+              )}
+
+              {/* 其他行程分頁放最下面，離底部導覽列最近、最好點 */}
+              {BOTTOM_NAV_OVERFLOW.map(function (tab) {
+                const isActive = tab.key === activeTab;
+                return (
+                  <a
+                    key={tab.key}
+                    href={"#/trip/" + tripId + "/" + tab.key}
+                    onClick={closeMenu}
+                    className={
+                      "w-full min-h-[44px] flex items-center gap-3 px-4 text-sm " +
+                      (isActive ? "text-brand-700 bg-brand-50" : "text-slate-700 active:bg-amber-50")
+                    }
+                  >
+                    <tab.Icon className="w-4 h-4" /> {tab.label}
+                  </a>
+                );
+              })}
+            </React.Fragment>
+          )}
         </div>
       )}
 
@@ -116,7 +134,7 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
 
       <button
         type="button"
-        onClick={function () { hapticLight(); setMoreOpen(!moreOpen); }}
+        onClick={function () { hapticLight(); setMoreOpen(!moreOpen); setSettingsView(false); }}
         aria-label="更多分頁"
         aria-expanded={moreOpen}
         className={itemClass(isOverflowActive || moreOpen)}
@@ -124,16 +142,6 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
         <MoreIcon className="w-5 h-5" />
         更多
       </button>
-
-      {showSettings && (
-        <SettingsPanel
-          onOpenMembers={onOpenMembers}
-          onEditTrip={onEditTrip}
-          onShare={onShare}
-          copied={copied}
-          onClose={function () { setShowSettings(false); }}
-        />
-      )}
     </nav>
   );
 }

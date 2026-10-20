@@ -3,6 +3,9 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
   const [editingCaption, setEditingCaption] = React.useState(false);
   const [captionDraft, setCaptionDraft] = React.useState(item.caption || "");
   const [editingScope, setEditingScope] = React.useState(false);
+  const [imgError, setImgError] = React.useState(false);
+  const online = useOnlineStatus();
+  const imgFailedText = online ? "圖片載入失敗" : "離線時無法顯示（下載供離線使用可先快取圖片）";
   const isPrivate = Boolean(item.isPrivate);
   // 只有新增這筆的人（或私人項目的主人）可以改分享範圍
   const canEditScope = isPrivate || (Boolean(nickname) && item.addedBy === nickname);
@@ -61,12 +64,20 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
       <div className="w-28 shrink-0">
         {scopeEditor}
         <div className="relative">
-          <img
-            src={cloudinaryThumbUrl(item.imageUrl, 160)}
-            alt={item.caption || "購物截圖"}
-            onClick={onImageClick}
-            className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
-          />
+          {imgError ? (
+            <div className="w-28 h-28 rounded-lg bg-slate-100 flex flex-col items-center justify-center gap-1 text-slate-400 px-1.5 text-center">
+              <CloudIcon className="w-5 h-5" />
+              <span className="text-[10px] leading-tight">{imgFailedText}</span>
+            </div>
+          ) : (
+            <img
+              src={cloudinaryThumbUrl(item.imageUrl, 160)}
+              alt={item.caption || "購物截圖"}
+              onClick={onImageClick}
+              onError={function () { setImgError(true); }}
+              className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
+            />
+          )}
           <button
             onClick={function (e) { e.stopPropagation(); if (canEditScope) setEditingScope(true); }}
             title={scopeInfo.title}
@@ -109,12 +120,20 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
     <div className="bg-white rounded-xl border border-amber-100 overflow-hidden">
       {scopeEditor}
       <div className="relative">
-        <img
-          src={cloudinaryThumbUrl(item.imageUrl, 480)}
-          alt={item.caption || "購物截圖"}
-          onClick={onImageClick}
-          className="w-full h-40 object-cover cursor-zoom-in"
-        />
+        {imgError ? (
+          <div className="w-full h-40 bg-slate-100 flex flex-col items-center justify-center gap-1.5 text-slate-400">
+            <CloudIcon className="w-7 h-7" />
+            <span className="text-xs">{imgFailedText}</span>
+          </div>
+        ) : (
+          <img
+            src={cloudinaryThumbUrl(item.imageUrl, 480)}
+            alt={item.caption || "購物截圖"}
+            onClick={onImageClick}
+            onError={function () { setImgError(true); }}
+            className="w-full h-40 object-cover cursor-zoom-in"
+          />
+        )}
       </div>
       <div className="p-3">
         {!editingCaption ? (
