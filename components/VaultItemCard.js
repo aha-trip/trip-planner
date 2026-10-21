@@ -1,6 +1,22 @@
 function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView }) {
   const [copied, setCopied] = React.useState(false);
+  const [calendarOpen, setCalendarOpen] = React.useState(false);
   const linkedWishlist = (wishlistItems || []).find(function (w) { return w.id === item.linkedWishlistItemId; });
+
+  // V8「使用前提醒」：重用 R4 已經做好的行事曆機制，不用另外裝原生推播外掛。
+  // datetime-local 輸入框沒有時區資訊，當成「填寫當下這支裝置的時區」來算，
+  // 對大多數人在旅途中填資料的情境是合理的假設。
+  const calendarTask = item.startsAt ? (function () {
+    const parts = item.startsAt.split("T");
+    return {
+      id: item.id,
+      title: item.title,
+      deadlineAt: parts[0],
+      openTime: parts[1] || "09:00",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      notes: item.confirmationCode ? "預約編號：" + item.confirmationCode : item.notes,
+    };
+  })() : null;
 
   function toggleUsed(e) {
     e.stopPropagation();
@@ -58,13 +74,22 @@ function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView 
             <LinkIcon className="w-3 h-3" /> {copied ? "已複製！" : "編號：" + item.confirmationCode}
           </button>
         )}
-        <div className="flex items-center gap-3 mt-1.5">
+        <div className="flex items-center gap-3 mt-1.5 flex-wrap">
           {item.imageUrl && onQuickView && (
             <button onClick={function (e) { e.stopPropagation(); onQuickView(); }} className="text-xs text-brand-600 font-medium">出示</button>
+          )}
+          {calendarTask && (
+            <button onClick={function (e) { e.stopPropagation(); setCalendarOpen(!calendarOpen); }} className="text-xs text-brand-600">📅 提醒</button>
           )}
           <button onClick={toggleUsed} className="text-xs text-slate-500">{item.usedAt ? "標記未使用" : "標記已使用"}</button>
           <button onClick={handleDelete} className="text-xs text-red-500">刪除</button>
         </div>
+        {calendarOpen && calendarTask && (
+          <div className="flex flex-wrap gap-2 mt-1.5" onClick={function (e) { e.stopPropagation(); }}>
+            <a href={buildGoogleCalendarUrl(calendarTask)} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-700 underline">加到 Google 日曆</a>
+            <button onClick={function () { downloadIcsFile(item.title, [calendarTask]); }} className="text-xs text-brand-700 underline">下載 .ics</button>
+          </div>
+        )}
       </div>
     </div>
   );

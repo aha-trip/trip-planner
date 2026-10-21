@@ -16,6 +16,7 @@ const BOTTOM_NAV_PRIMARY = [
 const BOTTOM_NAV_OVERFLOW = [
   { key: "prep", label: "準備", Icon: CompassIcon },
   { key: "vault", label: "保管箱", Icon: LockIcon },
+  { key: "essentials", label: "必備資訊", Icon: GlobeIcon },
   { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
   { key: "packing", label: "行李清單", Icon: BagIcon },
 ];

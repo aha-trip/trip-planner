@@ -38,3 +38,14 @@ function useLastSyncedAt() {
 
   return ts;
 }
+
+// O6：目前有幾個分頁的資料還在等著送到伺服器（離線時新增/修改的內容）
+function usePendingSyncCount() {
+  const [count, setCount] = React.useState(function () { return getPendingCount(); });
+
+  React.useEffect(function () {
+    return subscribePendingCount(setCount);
+  }, []);
+
+  return count;
+}

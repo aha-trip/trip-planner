@@ -20,7 +20,10 @@ function useCollection(collectionPath, queryFn) {
 
       unsubscribe = ref.onSnapshot(
         function (snapshot) {
-          if (usingRealFirebase && !snapshot.metadata.fromCache) recordSync();
+          if (usingRealFirebase) {
+            if (!snapshot.metadata.fromCache) recordSync();
+            setPendingWrites(collectionPath, snapshot.metadata.hasPendingWrites);
+          }
           const data = snapshot.docs.map(function (doc) {
             return Object.assign({ id: doc.id }, doc.data());
           });
@@ -36,6 +39,7 @@ function useCollection(collectionPath, queryFn) {
     return function () {
       cancelled = true;
       if (unsubscribe) unsubscribe();
+      if (usingRealFirebase) setPendingWrites(collectionPath, false);
     };
   }, [collectionPath]);
 

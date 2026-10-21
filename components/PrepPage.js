@@ -26,11 +26,52 @@ function groupPrepTasks(tasks) {
   return groups;
 }
 
-function PrepTaskCard({ task, onToggleDone }) {
+function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
   const [calendarOpen, setCalendarOpen] = React.useState(false);
+  const [uploading, setUploading] = React.useState(false);
+  const [showExpenseForm, setShowExpenseForm] = React.useState(false);
   const opensLabel = task.opensAt && task.openTime && task.timezone
     ? formatAsTaiwanTime(zonedTimeToUtc(task.opensAt, task.openTime, task.timezone)) + "（台灣時間）"
     : null;
+  const assignees = task.assignees || [];
+  const amClaimed = Boolean(nickname) && assignees.indexOf(nickname) >= 0;
+
+  function updateTask(patch) {
+    db.collection("trips/" + tripId + "/prepTasks").doc(task.id).update(patch).catch(function (err) { console.error(err); });
+  }
+
+  // R6：任務指派與認領。秒殺型任務允許多人同時認領（提示大家一起搶，誰搶到誰回報），
+  // 其他類型的任務認領後就不再顯示「我來」，避免兩個人都以為自己在處理同一件事。
+  function toggleClaim() {
+    if (!nickname) { window.alert("先在這趟行程設定暱稱才能認領任務"); return; }
+    const next = amClaimed ? assignees.filter(function (n) { return n !== nickname; }) : assignees.concat([nickname]);
+    updateTask({ assignees: next });
+  }
+
+  // R7：完成時可以附上確認截圖，直接重用購物清單/保管箱的上傳方式（壓縮 + 既有的 storage）
+  async function handleUploadProof(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const photo = await compressImage(file);
+      const safeName = (photo.name || "proof.jpg").replace(/[^\w.\-]/g, "_");
+      const path = "trips/" + tripId + "/prepProof/" + generateId(12) + "-" + safeName;
+      const ref = storage.ref(path);
+      await ref.put(photo);
+      const imageUrl = await ref.getDownloadURL();
+      updateTask({
+        status: "done",
+        result: { imageUrl: imageUrl, confirmedBy: nickname || "匿名" },
+      });
+    } catch (err) {
+      console.error(err);
+      window.alert("上傳失敗，請稍後再試。");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className={"rounded-xl border p-3 space-y-2 " + (task.status === "done" ? "border-slate-100 bg-slate-50 opacity-70" : "border-amber-100 bg-white")}>
@@ -55,6 +96,18 @@ function PrepTaskCard({ task, onToggleDone }) {
             {opensLabel ? "　開放：" + opensLabel : ""}
           </p>
           {task.notes && <p className="text-xs text-slate-500 mt-1">{task.notes}</p>}
+          {task.difficulty === "秒殺" && task.status !== "done" && (
+            <p className="text-xs text-amber-600 mt-1">⚡ 搶手任務，建議 2~3 人同時搶，誰搶到誰回報</p>
+          )}
+          {assignees.length > 0 && (
+            <p className="text-xs text-slate-500 mt-1">👤 認領：{assignees.join("、")}</p>
+          )}
+          {task.status === "done" && task.result && task.result.confirmedBy && (
+            <p className="text-xs text-emerald-600 mt-1">✅ {task.result.confirmedBy} 回報完成了！</p>
+          )}
+          {task.result && task.result.imageUrl && (
+            <img src={cloudinaryThumbUrl(task.result.imageUrl, 160)} alt="確認截圖" className="w-16 h-16 rounded-lg object-cover mt-1.5" />
+          )}
         </div>
       </div>
 
@@ -69,6 +122,24 @@ function PrepTaskCard({ task, onToggleDone }) {
             去預約
           </a>
         )}
+        {task.status !== "done" && (
+          <button type="button" onClick={toggleClaim} className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center">
+            {amClaimed ? "取消認領" : "🙋 我來"}
+          </button>
+        )}
+        {task.status !== "done" && (
+          <label className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center cursor-pointer">
+            {uploading ? "上傳中..." : "📷 回報完成（附截圖）"}
+            <input type="file" accept="image/*" className="hidden" onChange={handleUploadProof} disabled={uploading} />
+          </label>
+        )}
+        <button
+          type="button"
+          onClick={function () { setShowExpenseForm(true); }}
+          className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center"
+        >
+          💰 記花費
+        </button>
         <button
           type="button"
           onClick={function () { setCalendarOpen(!calendarOpen); }}
@@ -77,6 +148,16 @@ function PrepTaskCard({ task, onToggleDone }) {
           📅 加入行事曆
         </button>
       </div>
+
+      {showExpenseForm && (
+        <ExpenseForm
+          tripId={tripId}
+          nickname={nickname}
+          memberNames={memberNames}
+          defaults={{ note: task.title, date: todayStr() }}
+          onClose={function () { setShowExpenseForm(false); }}
+        />
+      )}
 
       {calendarOpen && (
         <div className="pl-8 flex flex-wrap gap-2">
@@ -105,6 +186,8 @@ function PrepPage({ tripId, trip, nickname }) {
   const { data: prepTasks, loading: tasksLoading } = useCollection("trips/" + tripId + "/prepTasks");
   const { data: wishlistItems, loading: wishlistLoading } = useCollection("trips/" + tripId + "/wishlistItems");
   const { data: itineraryItems, loading: itineraryLoading } = useCollection("trips/" + tripId + "/itineraryItems");
+  const { data: members } = useCollection("trips/" + tripId + "/members");
+  const memberNames = members.map(function (m) { return m.nickname; }).filter(Boolean);
   const generatedRef = React.useRef(false);
   const [doneCollapsed, setDoneCollapsed] = React.useState(true);
 
@@ -208,7 +291,7 @@ function PrepPage({ tripId, trip, nickname }) {
             {!collapsed && (
               <div className="space-y-2">
                 {list.map(function (t) {
-                  return <PrepTaskCard key={t.id} task={t} onToggleDone={toggleDone} />;
+                  return <PrepTaskCard key={t.id} tripId={tripId} task={t} onToggleDone={toggleDone} nickname={nickname} memberNames={memberNames} />;
                 })}
               </div>
             )}
