@@ -1,16 +1,17 @@
-// 手機版的底部導覽列（拇指熱區）：把最常用的 4 個分頁放在畫面下方 1/3，單手就點得到，
+// 手機版的底部導覽列（拇指熱區）：把最常用的 5 個分頁放在畫面下方 1/3，單手就點得到，
 // 取代原本在頂端、要伸手去點的分頁列。只在小螢幕顯示（sm 以上還是用原本頂端那排分頁），
 // 網頁版滑鼠操作、螢幕夠寬，底部固定列反而佔空間又用不到。
 //
-// 分頁放不進 4 個拇指熱區位置，所以留 4 個最常用的在底部、其餘收進「更多」彈出選單，
+// 分頁放不進拇指熱區位置，所以留 5 個最常用的在底部、其餘收進「更多」彈出選單，
 // 跟頂端那排分頁（網頁版看得到全部）並存，兩種入口都看得到同一份分頁清單。
-// 「更多」選單裡最下面（離底部導覽列最近、最好點）固定放行李清單、購物清單——其餘動作類項目
+// 「更多」選單裡最下面（離底部導覽列最近、最好點）固定放行李清單——其餘動作類項目
 // （行程成員/編輯/帳號/分享/清除快取/WiFi）排在上面。
 const BOTTOM_NAV_PRIMARY = [
   { key: "wishlist", label: "願望", Icon: HeartListIcon },
   { key: "itinerary", label: "行程", Icon: CalendarIcon },
   { key: "map", label: "地圖", Icon: PinIcon },
-  { key: "expenses", label: "花費", Icon: ReceiptIcon },
+  { key: "expenses", label: "花費", Icon: CoinIcon },
+  { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
 ];
 
 // 「更多」選單分組，跟桌面版 TripLayout 的 TABS_MORE_GROUPS 同一套邏輯，兩邊維持一致的心智模型。
@@ -21,7 +22,6 @@ const BOTTOM_NAV_MORE_GROUPS = [
     { key: "essentials", label: "必備資訊", Icon: GlobeIcon },
   ] },
   { label: "清單", items: [
-    { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
     { key: "packing", label: "行李清單", Icon: BagIcon },
   ] },
 ];

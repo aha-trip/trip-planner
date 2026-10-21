@@ -5,6 +5,7 @@ const TABS_PRIMARY = [
   { key: "itinerary", label: "行程" },
   { key: "map", label: "地圖" },
   { key: "expenses", label: "花費" },
+  { key: "shopping", label: "購物清單" },
 ];
 
 const TABS_MORE_GROUPS = [
@@ -14,7 +15,6 @@ const TABS_MORE_GROUPS = [
     { key: "essentials", label: "必備資訊" },
   ] },
   { label: "清單", items: [
-    { key: "shopping", label: "購物清單" },
     { key: "packing", label: "行李清單" },
   ] },
 ];
@@ -256,22 +256,27 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         </div>
         {/* 手機上（< sm）改用畫面下方的 <BottomNav/>，拇指比較好點到；
             網頁版（>= sm）維持原本頂端這排，滑鼠操作、螢幕夠寬，固定在底部反而佔空間。 */}
-        <nav className="hidden sm:flex items-center max-w-3xl mx-auto px-4 gap-1 overflow-x-auto relative">
-          {TABS_PRIMARY.map(function (tab) {
-            const isActive = tab.key === activeTab;
-            return (
-              <a
-                key={tab.key}
-                href={"#/trip/" + tripId + "/" + tab.key}
-                className={
-                  "shrink-0 px-3 py-2 text-sm font-medium border-b-2 transition " +
-                  (isActive ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-700")
-                }
-              >
-                {tab.label}
-              </a>
-            );
-          })}
+        <nav className="hidden sm:flex items-center max-w-3xl mx-auto px-4 gap-1">
+          {/* 橫向捲動只套用在這排常用分頁，不是整個 <nav>——「更多」下拉選單要放在這個
+              捲動容器外面，不然會被 overflow-x-auto 連帶把 overflow-y 也裁切掉，選單會
+              看起來「打開了但沒內容」（其實是內容被裁掉看不到）。 */}
+          <div className="flex gap-1 overflow-x-auto">
+            {TABS_PRIMARY.map(function (tab) {
+              const isActive = tab.key === activeTab;
+              return (
+                <a
+                  key={tab.key}
+                  href={"#/trip/" + tripId + "/" + tab.key}
+                  className={
+                    "shrink-0 px-3 py-2 text-sm font-medium border-b-2 transition " +
+                    (isActive ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-700")
+                  }
+                >
+                  {tab.label}
+                </a>
+              );
+            })}
+          </div>
 
           <div className="relative shrink-0" ref={tabsMoreRef}>
             <button
