@@ -48,6 +48,9 @@ service cloud.firestore {
       match /privateShopping/{itemId} {
         allow read, write: if signedIn() && request.auth.uid == userId && isGoogleUser();
       }
+      match /vaultItems/{itemId} {
+        allow read, write: if signedIn() && request.auth.uid == userId && isGoogleUser();
+      }
     }
 
     match /trips/{tripId} {

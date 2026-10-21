@@ -6,6 +6,7 @@ const TABS = [
   { key: "expenses", label: "花費" },
   { key: "packing", label: "行李" },
   { key: "shopping", label: "購物清單" },
+  { key: "vault", label: "保管箱" },
 ];
 
 // 不是行程內部的分頁，是外部連結（esim 經銷商），網頁版排在分頁列最後面；
@@ -260,6 +261,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         {activeTab === "expenses" && <ExpensesPage tripId={tripId} nickname={nickname} />}
         {activeTab === "packing" && <PackingListPage tripId={tripId} nickname={nickname} />}
         {activeTab === "shopping" && <ShoppingPage tripId={tripId} nickname={nickname} />}
+        {activeTab === "vault" && <VaultPage tripId={tripId} nickname={nickname} />}
       </main>
 
       <BottomNav
