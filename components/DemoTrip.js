@@ -42,8 +42,8 @@ function DemoTrip() {
       <div className="fixed inset-0 -z-10 bg-gradient-to-b from-sky-100 via-cream to-cream" />
 
       <header className="bg-cream/60 backdrop-blur border-b-2 border-brand-200/70 sticky top-0 z-10">
-        <div className="bg-amber-50 text-amber-800 text-xs text-center py-1 px-2">
-          📖 這是範例行程，純粹示範用，點什麼都不會真的被儲存
+        <div className="bg-amber-50 text-amber-800 text-xs text-center py-1 px-2 flex items-center justify-center gap-1">
+          <EyeIcon className="w-3.5 h-3.5 shrink-0" /> 這是範例行程，純粹示範用，點什麼都不會真的被儲存
         </div>
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -127,8 +127,8 @@ function DemoTrip() {
           <div className="grid grid-cols-3 gap-2 max-w-xs">
             {["#fdead4", "#fad3a8", "#f6b571"].map(function (color, i) {
               return (
-                <div key={i} className="aspect-square rounded-lg flex items-center justify-center text-2xl" style={{ background: color }}>
-                  🛍️
+                <div key={i} className="aspect-square rounded-lg flex items-center justify-center" style={{ background: color }}>
+                  <ReceiptIcon className="w-7 h-7 text-brand-700" />
                 </div>
               );
             })}

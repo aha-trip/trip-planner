@@ -85,7 +85,7 @@ function MemberListPanel({ tripId, isCreator, creatorDeviceId, accessMode, onClo
                 <div key={m.id} className="flex items-center justify-between gap-2 rounded-lg border border-amber-100 px-3 py-2">
                   <span className="text-sm text-slate-700 truncate">
                     {m.nickname}
-                    {isThisMemberCreator && <span className="text-xs text-brand-600 ml-1.5">👑 建立者</span>}
+                    {isThisMemberCreator && <span className="text-xs text-brand-600 ml-1.5 inline-flex items-center gap-0.5"><CrownIcon className="w-3 h-3" /> 建立者</span>}
                     {m.isGoogle && <span className="text-xs text-slate-400 ml-1.5">Google</span>}
                   </span>
                   {isCreator && !isThisMemberCreator && (

@@ -1,11 +1,11 @@
 // 「準備」分頁（行前任務雷達 R1~R4）：把需要提前搶票/準備的事，用時間軸排出來，
 // 加「加入行事曆」讓手機自己提醒——不需要我們自己發推播，零後端、零額外費用。
 const PREP_GROUP_ORDER = [
-  { key: "missed", label: "⚠️ 已錯過", hint: "建議直接查看官網還有沒有釋出名額或候補" },
-  { key: "today", label: "🔴 今天要做" },
-  { key: "week", label: "🟠 這 7 天內" },
-  { key: "later", label: "⚪ 之後" },
-  { key: "done", label: "✅ 已完成", collapsible: true },
+  { key: "missed", label: "已錯過", Icon: AlertIcon, dotClass: "bg-red-400", hint: "建議直接查看官網還有沒有釋出名額或候補" },
+  { key: "today", label: "今天要做", dotClass: "bg-red-500" },
+  { key: "week", label: "這 7 天內", dotClass: "bg-amber-400" },
+  { key: "later", label: "之後", dotClass: "bg-slate-300" },
+  { key: "done", label: "已完成", Icon: CheckCircleIcon, collapsible: true },
 ];
 
 function groupPrepTasks(tasks) {
@@ -85,7 +85,9 @@ function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
             (task.status === "done" ? "bg-brand-600 border-brand-600 text-white" : "border-amber-300 text-transparent")
           }
         >
-          ✓
+          <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5,12.5 L9.5,17 L19,6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
         <div className="flex-1 min-w-0">
           <p className={"text-sm font-medium text-slate-800 " + (task.status === "done" ? "line-through text-slate-400" : "")}>
@@ -97,13 +99,13 @@ function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
           </p>
           {task.notes && <p className="text-xs text-slate-500 mt-1">{task.notes}</p>}
           {task.difficulty === "秒殺" && task.status !== "done" && (
-            <p className="text-xs text-amber-600 mt-1">⚡ 搶手任務，建議 2~3 人同時搶，誰搶到誰回報</p>
+            <p className="text-xs text-amber-600 mt-1 flex items-center gap-1"><LightningIcon className="w-3.5 h-3.5 shrink-0" /> 搶手任務，建議 2~3 人同時搶，誰搶到誰回報</p>
           )}
           {assignees.length > 0 && (
-            <p className="text-xs text-slate-500 mt-1">👤 認領：{assignees.join("、")}</p>
+            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1"><PeopleIcon className="w-3.5 h-3.5 shrink-0" /> 認領：{assignees.join("、")}</p>
           )}
           {task.status === "done" && task.result && task.result.confirmedBy && (
-            <p className="text-xs text-emerald-600 mt-1">✅ {task.result.confirmedBy} 回報完成了！</p>
+            <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircleIcon className="w-3.5 h-3.5 shrink-0" /> {task.result.confirmedBy} 回報完成了！</p>
           )}
           {task.result && task.result.imageUrl && (
             <img src={cloudinaryThumbUrl(task.result.imageUrl, 160)} alt="確認截圖" className="w-16 h-16 rounded-lg object-cover mt-1.5" />
@@ -123,29 +125,29 @@ function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
           </a>
         )}
         {task.status !== "done" && (
-          <button type="button" onClick={toggleClaim} className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center">
-            {amClaimed ? "取消認領" : "🙋 我來"}
+          <button type="button" onClick={toggleClaim} className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center gap-1">
+            {amClaimed ? "取消認領" : <React.Fragment><HandRaisedIcon className="w-3.5 h-3.5" /> 我來</React.Fragment>}
           </button>
         )}
         {task.status !== "done" && (
-          <label className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center cursor-pointer">
-            {uploading ? "上傳中..." : "📷 回報完成（附截圖）"}
+          <label className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center gap-1 cursor-pointer">
+            {uploading ? "上傳中..." : <React.Fragment><CameraIcon className="w-3.5 h-3.5" /> 回報完成（附截圖）</React.Fragment>}
             <input type="file" accept="image/*" className="hidden" onChange={handleUploadProof} disabled={uploading} />
           </label>
         )}
         <button
           type="button"
           onClick={function () { setShowExpenseForm(true); }}
-          className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center"
+          className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center gap-1"
         >
-          💰 記花費
+          <CoinIcon className="w-3.5 h-3.5" /> 記花費
         </button>
         <button
           type="button"
           onClick={function () { setCalendarOpen(!calendarOpen); }}
-          className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center"
+          className="min-h-[32px] px-3 rounded-lg border border-amber-200 text-slate-600 text-xs font-medium inline-flex items-center gap-1"
         >
-          📅 加入行事曆
+          <CalendarIcon className="w-3.5 h-3.5" /> 加入行事曆
         </button>
       </div>
 
@@ -284,7 +286,10 @@ function PrepPage({ tripId, trip, nickname }) {
               onClick={function () { if (g.collapsible) setDoneCollapsed(!doneCollapsed); }}
               className="w-full flex items-center justify-between text-sm font-bold text-slate-700 mb-2"
             >
-              <span>{g.label}（{list.length}）</span>
+              <span className="inline-flex items-center gap-1.5">
+                {g.Icon ? <g.Icon className="w-4 h-4" /> : <span className={"w-2.5 h-2.5 rounded-full shrink-0 " + g.dotClass} />}
+                {g.label}（{list.length}）
+              </span>
               {g.collapsible && <span className="text-xs text-slate-400">{collapsed ? "展開" : "收合"}</span>}
             </button>
             {g.hint && !collapsed && <p className="text-xs text-slate-400 mb-2">{g.hint}</p>}

@@ -29,7 +29,7 @@ function DayWeatherBanner({ tripId, date, lat, lng }) {
     };
     return (
       <div className="text-xs text-slate-400 px-1">
-        🌤️ {(weather && reasonText[weather.reason]) || "天氣資訊暫不可用"}
+        <WeatherIcon className="w-3.5 h-3.5 inline shrink-0" /> {(weather && reasonText[weather.reason]) || "天氣資訊暫不可用"}
       </div>
     );
   }

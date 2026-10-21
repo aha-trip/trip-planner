@@ -1,17 +1,25 @@
-const TABS = [
+// 分頁太多（9 個）全部攤開會很亂，改成「常用」固定看得到、其餘分組收進「更多」下拉選單——
+// 跟手機版 BottomNav 同一套分組邏輯，兩邊維持一致的心智模型。
+const TABS_PRIMARY = [
   { key: "wishlist", label: "願望清單" },
   { key: "itinerary", label: "行程" },
-  { key: "prep", label: "準備" },
   { key: "map", label: "地圖" },
   { key: "expenses", label: "花費" },
-  { key: "packing", label: "行李" },
-  { key: "shopping", label: "購物清單" },
-  { key: "vault", label: "保管箱" },
-  { key: "essentials", label: "必備資訊" },
 ];
 
-// 不是行程內部的分頁，是外部連結（esim 經銷商），網頁版排在分頁列最後面；
-// 手機版沒有獨立的分頁列空間，收進 <BottomNav/> 的「更多」選單裡。
+const TABS_MORE_GROUPS = [
+  { label: "行程工具", items: [
+    { key: "prep", label: "準備" },
+    { key: "vault", label: "保管箱" },
+    { key: "essentials", label: "必備資訊" },
+  ] },
+  { label: "清單", items: [
+    { key: "shopping", label: "購物清單" },
+    { key: "packing", label: "行李清單" },
+  ] },
+];
+
+// 不是行程內部的分頁，是外部連結（esim 經銷商），收進「更多」下拉選單裡（網頁版、手機版都是）。
 const WIFI_LINK = { label: "WIFI", href: "https://ahaha0610.esimart.cc/home" };
 
 function TripLayout({ tripId, activeTab, focusItemId }) {
@@ -25,6 +33,21 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   const [showMembers, setShowMembers] = React.useState(false);
   const [showEditTrip, setShowEditTrip] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [tabsMoreOpen, setTabsMoreOpen] = React.useState(false);
+  const tabsMoreRef = React.useRef(null);
+
+  React.useEffect(function () {
+    if (!tabsMoreOpen) return;
+    function onOutside(e) {
+      if (tabsMoreRef.current && !tabsMoreRef.current.contains(e.target)) setTabsMoreOpen(false);
+    }
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("touchstart", onOutside);
+    return function () {
+      document.removeEventListener("mousedown", onOutside);
+      document.removeEventListener("touchstart", onOutside);
+    };
+  }, [tabsMoreOpen]);
   const headerVisible = useAutoHideHeader();
   const online = useOnlineStatus();
   const lastSyncedAt = useLastSyncedAt();
@@ -165,6 +188,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   const googleOnly = trip.accessMode === "google";
   const locked = googleOnly && !auth.isGoogle;
   const isCreator = trip.creatorDeviceId === getDeviceId() || (Boolean(uid) && trip.creatorUid === uid);
+  const isTabsMoreActive = TABS_MORE_GROUPS.some(function (g) { return g.items.some(function (t) { return t.key === activeTab; }); });
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden relative">
@@ -182,23 +206,23 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         }
       >
         {usingLocalBackend && (
-          <div className="bg-sky-50 text-sky-800 text-xs text-center py-1 px-2">
-            🧪 本機試玩模式：資料只存在這個瀏覽器，還不會跟別人同步
+          <div className="bg-sky-50 text-sky-800 text-xs text-center py-1 px-2 flex items-center justify-center gap-1">
+            <FlaskIcon className="w-3.5 h-3.5 shrink-0" /> 本機試玩模式：資料只存在這個瀏覽器，還不會跟別人同步
           </div>
         )}
         {!online && (
-          <div className="bg-slate-100 text-slate-600 text-xs text-center py-1 px-2">
-            📴 目前離線，顯示的是{lastSyncedAt ? formatSyncedTime(lastSyncedAt) + " " : "上次"}同步的資料；你的修改會先存在這台裝置上，恢復網路後自動同步
+          <div className="bg-slate-100 text-slate-600 text-xs text-center py-1 px-2 flex items-center justify-center gap-1">
+            <OfflineIcon className="w-3.5 h-3.5 shrink-0" /> 目前離線，顯示的是{lastSyncedAt ? formatSyncedTime(lastSyncedAt) + " " : "上次"}同步的資料；你的修改會先存在這台裝置上，恢復網路後自動同步
           </div>
         )}
         {online && pendingSyncCount > 0 && (
-          <div className="bg-sky-50 text-sky-700 text-xs text-center py-1 px-2">
-            ⏳ 有 {pendingSyncCount} 個分頁的變更正在同步中...
+          <div className="bg-sky-50 text-sky-700 text-xs text-center py-1 px-2 flex items-center justify-center gap-1">
+            <HourglassIcon className="w-3.5 h-3.5 shrink-0" /> 有 {pendingSyncCount} 個分頁的變更正在同步中...
           </div>
         )}
         {locked && (
-          <div className="bg-amber-50 text-amber-800 text-xs text-center py-1 px-2">
-            🔒 這趟行程限 Google 登入者編輯，目前是唯讀，你的修改不會儲存
+          <div className="bg-amber-50 text-amber-800 text-xs text-center py-1 px-2 flex items-center justify-center gap-1">
+            <LockIcon className="w-3.5 h-3.5 shrink-0" /> 這趟行程限 Google 登入者編輯，目前是唯讀，你的修改不會儲存
           </div>
         )}
         <div className="max-w-3xl mx-auto px-3 py-2 flex items-center justify-between gap-2">
@@ -232,8 +256,8 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         </div>
         {/* 手機上（< sm）改用畫面下方的 <BottomNav/>，拇指比較好點到；
             網頁版（>= sm）維持原本頂端這排，滑鼠操作、螢幕夠寬，固定在底部反而佔空間。 */}
-        <nav className="hidden sm:flex max-w-3xl mx-auto px-4 gap-1 overflow-x-auto">
-          {TABS.map(function (tab) {
+        <nav className="hidden sm:flex items-center max-w-3xl mx-auto px-4 gap-1 overflow-x-auto relative">
+          {TABS_PRIMARY.map(function (tab) {
             const isActive = tab.key === activeTab;
             return (
               <a
@@ -248,14 +272,55 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               </a>
             );
           })}
-          <a
-            href={WIFI_LINK.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 px-3 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700"
-          >
-            {WIFI_LINK.label}
-          </a>
+
+          <div className="relative shrink-0" ref={tabsMoreRef}>
+            <button
+              type="button"
+              onClick={function () { setTabsMoreOpen(!tabsMoreOpen); }}
+              className={
+                "px-3 py-2 text-sm font-medium border-b-2 transition inline-flex items-center gap-1 " +
+                (isTabsMoreActive || tabsMoreOpen ? "border-brand-600 text-brand-700" : "border-transparent text-slate-500 hover:text-slate-700")
+              }
+            >
+              更多 <span className="text-xs">{tabsMoreOpen ? "▴" : "▾"}</span>
+            </button>
+            {tabsMoreOpen && (
+              <div className="absolute left-0 top-full mt-1 w-52 bg-white rounded-xl shadow-lg border border-amber-100 overflow-hidden z-30 divide-y divide-amber-100">
+                {TABS_MORE_GROUPS.map(function (group) {
+                  return (
+                    <div key={group.label}>
+                      <p className="text-[11px] font-medium text-slate-400 px-4 pt-2 pb-1">{group.label}</p>
+                      {group.items.map(function (tab) {
+                        const isActive = tab.key === activeTab;
+                        return (
+                          <a
+                            key={tab.key}
+                            href={"#/trip/" + tripId + "/" + tab.key}
+                            onClick={function () { setTabsMoreOpen(false); }}
+                            className={
+                              "block min-h-[40px] flex items-center px-4 text-sm " +
+                              (isActive ? "text-brand-700 bg-brand-50" : "text-slate-700 hover:bg-amber-50")
+                            }
+                          >
+                            {tab.label}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+                <a
+                  href={WIFI_LINK.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={function () { setTabsMoreOpen(false); }}
+                  className="min-h-[40px] flex items-center px-4 text-sm text-slate-700 hover:bg-amber-50"
+                >
+                  {WIFI_LINK.label}
+                </a>
+              </div>
+            )}
+          </div>
         </nav>
       </header>
       <div style={{ height: headerHeight }} />

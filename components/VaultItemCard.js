@@ -45,6 +45,7 @@ function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView 
   const dateLabel = item.startsAt
     ? new Date(item.startsAt).toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })
     : null;
+  const CategoryIcon = vaultCategoryIconComponent(item.category);
 
   return (
     <div className={"bg-white rounded-xl border p-3 flex gap-3 " + (item.usedAt ? "border-slate-100 opacity-60" : "border-amber-100")}>
@@ -56,14 +57,14 @@ function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView 
           className="w-16 h-16 rounded-lg object-cover shrink-0 cursor-zoom-in"
         />
       ) : (
-        <div className="w-16 h-16 rounded-lg bg-amber-50 flex items-center justify-center text-2xl shrink-0">
-          {vaultCategoryIcon(item.category)}
+        <div className="w-16 h-16 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+          <CategoryIcon className="w-6 h-6 text-brand-600" />
         </div>
       )}
 
       <div className="min-w-0 flex-1">
-        <p className={"text-sm font-medium text-slate-800 truncate " + (item.usedAt ? "line-through" : "")}>
-          {vaultCategoryIcon(item.category)} {item.title}
+        <p className={"text-sm font-medium text-slate-800 truncate flex items-center gap-1.5 " + (item.usedAt ? "line-through" : "")}>
+          <CategoryIcon className="w-3.5 h-3.5 text-brand-600 shrink-0" /> {item.title}
         </p>
         <p className="text-xs text-slate-400 mt-0.5">
           {dateLabel || vaultCategoryLabel(item.category)}
@@ -79,7 +80,9 @@ function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView 
             <button onClick={function (e) { e.stopPropagation(); onQuickView(); }} className="text-xs text-brand-600 font-medium">出示</button>
           )}
           {calendarTask && (
-            <button onClick={function (e) { e.stopPropagation(); setCalendarOpen(!calendarOpen); }} className="text-xs text-brand-600">📅 提醒</button>
+            <button onClick={function (e) { e.stopPropagation(); setCalendarOpen(!calendarOpen); }} className="text-xs text-brand-600 inline-flex items-center gap-1">
+              <CalendarIcon className="w-3.5 h-3.5" /> 提醒
+            </button>
           )}
           <button onClick={toggleUsed} className="text-xs text-slate-500">{item.usedAt ? "標記未使用" : "標記已使用"}</button>
           <button onClick={handleDelete} className="text-xs text-red-500">刪除</button>

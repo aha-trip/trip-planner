@@ -54,7 +54,7 @@ function VaultPage({ tripId, nickname }) {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5">
-        🎫 保管箱
+        <TicketIcon className="w-5 h-5 text-brand-600" /> 保管箱
       </h2>
 
       {auth.isGoogle && localLeftover.length > 0 && (
@@ -91,13 +91,14 @@ function VaultPage({ tripId, nickname }) {
           全部
         </button>
         {VAULT_CATEGORIES.map(function (c) {
+          const Icon = vaultCategoryIconComponent(c.key);
           return (
             <button
               key={c.key}
               onClick={function () { setCategoryFilter(c.key); }}
-              className={"px-2.5 py-1 rounded-full text-xs font-medium border " + (categoryFilter === c.key ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600")}
+              className={"px-2.5 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1 " + (categoryFilter === c.key ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600")}
             >
-              {c.icon} {c.label}
+              <Icon className="w-3 h-3" /> {c.label}
             </button>
           );
         })}
@@ -124,7 +125,7 @@ function VaultPage({ tripId, nickname }) {
       {used.length > 0 && (
         <div>
           <button onClick={function () { setUsedCollapsed(!usedCollapsed); }} className="w-full flex items-center justify-between text-sm font-bold text-slate-700 mb-2">
-            <span>✅ 已使用（{used.length}）</span>
+            <span className="inline-flex items-center gap-1"><CheckCircleIcon className="w-4 h-4 text-emerald-600" /> 已使用（{used.length}）</span>
             <span className="text-xs text-slate-400">{usedCollapsed ? "展開" : "收合"}</span>
           </button>
           {!usedCollapsed && (

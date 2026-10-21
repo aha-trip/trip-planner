@@ -13,13 +13,19 @@ const BOTTOM_NAV_PRIMARY = [
   { key: "expenses", label: "花費", Icon: ReceiptIcon },
 ];
 
-const BOTTOM_NAV_OVERFLOW = [
-  { key: "prep", label: "準備", Icon: CompassIcon },
-  { key: "vault", label: "保管箱", Icon: LockIcon },
-  { key: "essentials", label: "必備資訊", Icon: GlobeIcon },
-  { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
-  { key: "packing", label: "行李清單", Icon: BagIcon },
+// 「更多」選單分組，跟桌面版 TripLayout 的 TABS_MORE_GROUPS 同一套邏輯，兩邊維持一致的心智模型。
+const BOTTOM_NAV_MORE_GROUPS = [
+  { label: "行程工具", items: [
+    { key: "prep", label: "準備", Icon: CompassIcon },
+    { key: "vault", label: "保管箱", Icon: LockIcon },
+    { key: "essentials", label: "必備資訊", Icon: GlobeIcon },
+  ] },
+  { label: "清單", items: [
+    { key: "shopping", label: "購物清單", Icon: ReceiptIcon },
+    { key: "packing", label: "行李清單", Icon: BagIcon },
+  ] },
 ];
+const BOTTOM_NAV_OVERFLOW = BOTTOM_NAV_MORE_GROUPS.reduce(function (acc, g) { return acc.concat(g.items); }, []);
 
 function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copied, wifiLink }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
@@ -97,21 +103,28 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, copi
                 </a>
               )}
 
-              {/* 其他行程分頁放最下面，離底部導覽列最近、最好點 */}
-              {BOTTOM_NAV_OVERFLOW.map(function (tab) {
-                const isActive = tab.key === activeTab;
+              {/* 其他行程分頁依分組顯示，放最下面、離底部導覽列最近、最好點 */}
+              {BOTTOM_NAV_MORE_GROUPS.map(function (group) {
                 return (
-                  <a
-                    key={tab.key}
-                    href={"#/trip/" + tripId + "/" + tab.key}
-                    onClick={closeMenu}
-                    className={
-                      "w-full min-h-[44px] flex items-center gap-3 px-4 text-sm " +
-                      (isActive ? "text-brand-700 bg-brand-50" : "text-slate-700 active:bg-amber-50")
-                    }
-                  >
-                    <tab.Icon className="w-4 h-4" /> {tab.label}
-                  </a>
+                  <div key={group.label}>
+                    <p className="text-[11px] font-medium text-slate-400 px-4 pt-2 pb-1">{group.label}</p>
+                    {group.items.map(function (tab) {
+                      const isActive = tab.key === activeTab;
+                      return (
+                        <a
+                          key={tab.key}
+                          href={"#/trip/" + tripId + "/" + tab.key}
+                          onClick={closeMenu}
+                          className={
+                            "w-full min-h-[44px] flex items-center gap-3 px-4 text-sm " +
+                            (isActive ? "text-brand-700 bg-brand-50" : "text-slate-700 active:bg-amber-50")
+                          }
+                        >
+                          <tab.Icon className="w-4 h-4" /> {tab.label}
+                        </a>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </React.Fragment>

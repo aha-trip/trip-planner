@@ -269,7 +269,11 @@ function AdminBookingRulesPage() {
               <div key={rule.id} className="bg-white rounded-xl border border-amber-100 p-3 flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800">
-                    {rule.id} {rule.verified ? <span className="text-emerald-600 text-xs">✅ 已核對</span> : <span className="text-amber-600 text-xs">⚠️ 未核對</span>}
+                    {rule.id} {rule.verified ? (
+                      <span className="text-emerald-600 text-xs inline-flex items-center gap-1"><CheckCircleIcon className="w-3.5 h-3.5" /> 已核對</span>
+                    ) : (
+                      <span className="text-amber-600 text-xs inline-flex items-center gap-1"><AlertIcon className="w-3.5 h-3.5" /> 未核對</span>
+                    )}
                   </p>
                   <p className="text-xs text-slate-500 mt-0.5">{(rule.aliases || []).join("、")}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{rule.openRuleText}</p>

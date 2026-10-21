@@ -117,15 +117,16 @@ function Home() {
         </div>
 
         {usingLocalBackend && (
-          <div className="rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-sm p-3">
-            🧪 目前是本機試玩模式：資料只存在這個瀏覽器，還不會跟別人同步。想多人共享時，照
-            <code className="font-mono mx-1">SETUP.md</code>設定 Firebase 即可自動切換。
+          <div className="rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-sm p-3 flex items-start gap-1.5">
+            <FlaskIcon className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>目前是本機試玩模式：資料只存在這個瀏覽器，還不會跟別人同步。想多人共享時，照
+            <code className="font-mono mx-1">SETUP.md</code>設定 Firebase 即可自動切換。</span>
           </div>
         )}
 
         {recentTrips.length > 0 && (
           <div className="bg-white/90 backdrop-blur rounded-2xl shadow-sm p-5">
-            <h2 className="text-sm font-bold text-slate-700 mb-3">📂 你打開過的行程</h2>
+            <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1.5"><FolderIcon className="w-4 h-4 text-brand-600" /> 你打開過的行程</h2>
             <div className="space-y-2">
               {recentTrips.map(function (t) {
                 return (
@@ -156,8 +157,8 @@ function Home() {
                 );
               })}
             </div>
-            <a href="#/demo" className="inline-block text-sm text-brand-600 hover:underline font-medium">
-              👀 看範例行程
+            <a href="#/demo" className="inline-flex items-center justify-center gap-1 text-sm text-brand-600 hover:underline font-medium">
+              <EyeIcon className="w-4 h-4" /> 看範例行程
             </a>
           </div>
         ) : (

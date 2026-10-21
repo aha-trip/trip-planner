@@ -107,17 +107,18 @@ function AddVaultItemForm({ tripId, nickname, wishlistItems, onDone, onCancel })
     <form onSubmit={handleSubmit} className="space-y-3 bg-white rounded-xl border border-amber-100 p-4">
       <div className="flex flex-wrap gap-1.5">
         {VAULT_CATEGORIES.map(function (c) {
+          const Icon = vaultCategoryIconComponent(c.key);
           return (
             <button
               type="button"
               key={c.key}
               onClick={function () { setCategory(c.key); }}
               className={
-                "px-2.5 py-1 rounded-full text-xs font-medium border transition " +
+                "px-2.5 py-1 rounded-full text-xs font-medium border transition inline-flex items-center gap-1 " +
                 (category === c.key ? "bg-brand-600 border-brand-600 text-white" : "border-amber-200 text-slate-600 hover:border-brand-400")
               }
             >
-              {c.icon} {c.label}
+              <Icon className="w-3 h-3" /> {c.label}
             </button>
           );
         })}
@@ -165,12 +166,12 @@ function AddVaultItemForm({ tripId, nickname, wishlistItems, onDone, onCancel })
       ) : (
         <div className="space-y-2">
           {window.Capacitor && window.Capacitor.isNativePlatform() && (
-            <button type="button" onClick={handleNativeCamera} className="w-full min-h-[44px] rounded-lg border-2 border-brand-600 text-white font-medium bg-brand-600 active:bg-brand-700 text-sm">
-              📷 拍照
+            <button type="button" onClick={handleNativeCamera} className="w-full min-h-[44px] rounded-lg border-2 border-brand-600 text-white font-medium bg-brand-600 active:bg-brand-700 text-sm inline-flex items-center justify-center gap-1.5">
+              <CameraIcon className="w-4 h-4" /> 拍照
             </button>
           )}
-          <button type="button" onClick={function () { document.getElementById(fileInputId).click(); }} className="w-full min-h-[44px] rounded-lg border-2 border-brand-400 text-brand-700 font-medium bg-brand-50 active:bg-brand-100 text-sm">
-            📁 從相簿選擇憑證照片（選填）
+          <button type="button" onClick={function () { document.getElementById(fileInputId).click(); }} className="w-full min-h-[44px] rounded-lg border-2 border-brand-400 text-brand-700 font-medium bg-brand-50 active:bg-brand-100 text-sm inline-flex items-center justify-center gap-1.5">
+            <FolderIcon className="w-4 h-4" /> 從相簿選擇憑證照片（選填）
           </button>
           <textarea
             value=""

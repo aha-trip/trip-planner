@@ -72,7 +72,7 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
         />
       )}
       {placesActive && !online && (
-        <p className="text-xs text-slate-400 px-1">📴 離線中，先手動輸入名稱就好，連上網路後可以搜尋地點</p>
+        <p className="text-xs text-slate-400 px-1 flex items-center gap-1"><OfflineIcon className="w-3.5 h-3.5 shrink-0" /> 離線中，先手動輸入名稱就好，連上網路後可以搜尋地點</p>
       )}
       {placesActive && online && address && <p className="text-xs text-slate-400 px-1">{address}</p>}
 

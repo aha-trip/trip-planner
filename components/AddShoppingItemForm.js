@@ -132,17 +132,17 @@ function AddShoppingItemForm({ tripId, nickname, linkedWishlistItemId, wishlistI
             <button
               type="button"
               onClick={handleNativeCamera}
-              className="w-full min-h-[48px] rounded-lg border-2 border-brand-600 text-white font-medium bg-brand-600 active:bg-brand-700"
+              className="w-full min-h-[48px] rounded-lg border-2 border-brand-600 text-white font-medium bg-brand-600 active:bg-brand-700 inline-flex items-center justify-center gap-1.5"
             >
-              📷 拍照
+              <CameraIcon className="w-4 h-4" /> 拍照
             </button>
           )}
           <button
             type="button"
             onClick={function () { document.getElementById(fileInputId).click(); }}
-            className="w-full min-h-[48px] rounded-lg border-2 border-brand-400 text-brand-700 font-medium bg-brand-50 active:bg-brand-100"
+            className="w-full min-h-[48px] rounded-lg border-2 border-brand-400 text-brand-700 font-medium bg-brand-50 active:bg-brand-100 inline-flex items-center justify-center gap-1.5"
           >
-            📁 從相簿選擇圖片
+            <FolderIcon className="w-4 h-4" /> 從相簿選擇圖片
           </button>
           <textarea
             value=""

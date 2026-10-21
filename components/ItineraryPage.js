@@ -83,8 +83,8 @@ function ItineraryPage({ tripId, trip, nickname }) {
   return (
     <div className="space-y-4">
       {healthCheckText && (
-        <a href={"#/trip/" + tripId + "/prep"} className="block bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
-          🧭 行程健檢：{healthCheckText} ›
+        <a href={"#/trip/" + tripId + "/prep"} className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 flex items-center gap-1.5">
+          <CompassIcon className="w-4 h-4 shrink-0" /> 行程健檢：{healthCheckText} ›
         </a>
       )}
 
@@ -140,15 +140,18 @@ function ItineraryPage({ tripId, trip, nickname }) {
 
           {todayTickets.length > 0 && (
             <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-emerald-800 font-medium shrink-0">🎫 這天的票券：</span>
+              <span className="text-sm text-emerald-800 font-medium shrink-0 inline-flex items-center gap-1">
+                <TicketIcon className="w-4 h-4" /> 這天的票券：
+              </span>
               {todayTickets.map(function (v) {
+                const Icon = vaultCategoryIconComponent(v.category);
                 return (
                   <button
                     key={(v.isPrivate ? "p-" : "s-") + v.id}
                     onClick={function () { setQuickViewItem(v); }}
-                    className="text-xs bg-white border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-1"
+                    className="text-xs bg-white border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-1 inline-flex items-center gap-1"
                   >
-                    {vaultCategoryIcon(v.category)} {v.title}
+                    <Icon className="w-3 h-3" /> {v.title}
                   </button>
                 );
               })}

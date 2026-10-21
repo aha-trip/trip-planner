@@ -1,13 +1,15 @@
 // O5「旅途必備資訊卡」：住宿地址、緊急聯絡方式、保險資訊集中一頁，離線也看得到
 // （跟其他行程資料一樣受 O2/O3 的離線快取保護）。「給司機看」用大字顯示飯店名稱/地址，
 // 計程車司機一眼就看懂，不用比手畫腳。
-function EssentialsCard({ label, big, onDriverView }) {
+function EssentialsCard({ label, Icon, big, onDriverView }) {
   return (
     <div className="bg-white rounded-xl border border-amber-100 p-4">
-      <p className="text-xs text-slate-400 mb-1">{label}</p>
+      <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">{Icon && <Icon className="w-3.5 h-3.5" />} {label}</p>
       <p className="text-lg font-bold text-slate-800 break-words">{big || "尚未填寫"}</p>
       {big && onDriverView && (
-        <button onClick={onDriverView} className="mt-2 text-xs text-brand-600 font-medium">🚕 給司機看（大字顯示）</button>
+        <button onClick={onDriverView} className="mt-2 text-xs text-brand-600 font-medium inline-flex items-center gap-1">
+          <CarIcon className="w-3.5 h-3.5" /> 給司機看（大字顯示）
+        </button>
       )}
     </div>
   );
@@ -99,7 +101,7 @@ function EssentialsPage({ tripId, nickname }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-800">📋 必備資訊</h2>
+        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5"><DocumentIcon className="w-5 h-5 text-brand-600" /> 必備資訊</h2>
         <button onClick={startEdit} className="text-sm text-brand-600 font-medium flex items-center gap-1">
           <PencilIcon className="w-3.5 h-3.5" /> 編輯
         </button>
@@ -107,13 +109,14 @@ function EssentialsPage({ tripId, nickname }) {
       <p className="text-xs text-slate-400">旅途中最常被翻出來的資訊集中在這裡，離線也看得到。</p>
 
       <EssentialsCard
-        label="🏨 飯店地址"
+        label="飯店地址"
+        Icon={BuildingIcon}
         big={info && info.hotelAddress}
         onDriverView={info && info.hotelAddress ? function () { setDriverView({ title: info.hotelName || "飯店地址", text: info.hotelAddress }); } : null}
       />
 
       <div className="bg-white rounded-xl border border-amber-100 p-4">
-        <p className="text-xs text-slate-400 mb-1">🚨 緊急聯絡方式</p>
+        <p className="text-xs text-slate-400 mb-1 flex items-center gap-1"><AlertIcon className="w-3.5 h-3.5" /> 緊急聯絡方式</p>
         {info && info.emergencyContacts && info.emergencyContacts.length > 0 ? (
           <ul className="text-sm text-slate-700 space-y-1">
             {info.emergencyContacts.map(function (c, i) { return <li key={i}>{c}</li>; })}
@@ -124,7 +127,7 @@ function EssentialsPage({ tripId, nickname }) {
       </div>
 
       <div className="bg-white rounded-xl border border-amber-100 p-4">
-        <p className="text-xs text-slate-400 mb-1">🛡️ 保險資訊</p>
+        <p className="text-xs text-slate-400 mb-1 flex items-center gap-1"><ShieldIcon className="w-3.5 h-3.5" /> 保險資訊</p>
         {info && (info.insuranceCompany || info.insurancePhone || info.insurancePolicyNumber) ? (
           <div className="text-sm text-slate-700 space-y-0.5">
             {info.insuranceCompany && <p>保險公司：{info.insuranceCompany}</p>}
