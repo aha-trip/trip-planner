@@ -2,6 +2,10 @@ function ItineraryPage({ tripId, trip, nickname }) {
   const { data: rawItineraryItems, loading } = useCollection("trips/" + tripId + "/itineraryItems");
   const { data: rawWishlistItems } = useCollection("trips/" + tripId + "/wishlistItems");
   const { data: members } = useCollection("trips/" + tripId + "/members");
+  const { data: prepTasks } = useCollection("trips/" + tripId + "/prepTasks");
+  const { data: vaultShared } = useCollection("trips/" + tripId + "/vaultItems");
+  const vaultPrivate = usePrivateVaultItems(tripId);
+  const [quickViewItem, setQuickViewItem] = React.useState(null);
   const memberNames = members.map(function (m) { return m.nickname; }).filter(Boolean);
 
   const itineraryItems = rawItineraryItems.filter(function (i) { return !i.deletedAt; });
@@ -53,8 +57,37 @@ function ItineraryPage({ tripId, trip, nickname }) {
     );
   }
 
+  // R5「行程健檢」：還有幾件行前任務沒處理、最近一件幾天後開放——打開行程頁第一眼就看得到，
+  // 不用特地切到「準備」分頁才知道有事要做
+  const pendingPrepTasks = (prepTasks || []).filter(function (t) { return !t.deletedAt && t.status !== "done"; });
+  let healthCheckText = null;
+  if (pendingPrepTasks.length > 0) {
+    const nearest = pendingPrepTasks.slice().sort(function (a, b) { return a.deadlineAt < b.deadlineAt ? -1 : 1; })[0];
+    const diff = diffDaysInt(todayStr(), nearest.deadlineAt);
+    const whenText = diff < 0 ? "已經過期" : diff === 0 ? "今天截止" : diff + " 天後截止";
+    healthCheckText = "還有 " + pendingPrepTasks.length + " 件行前任務待處理，最近一件" + whenText;
+  }
+
+  // V3「今天的票券」：這天排進行程的地點裡，有沒有連結到保管箱憑證
+  const todayWishlistIds = {};
+  itineraryItems.filter(function (i) { return i.date === (activeDate || dayList[0]); }).forEach(function (i) {
+    todayWishlistIds[i.wishlistItemId] = true;
+  });
+  const allVaultItems = (vaultShared || [])
+    .filter(function (v) { return !v.deletedAt && isSharedItemVisible(v, nickname); })
+    .concat(vaultPrivate || []);
+  const todayTickets = allVaultItems.filter(function (v) {
+    return !v.usedAt && v.linkedWishlistItemId && todayWishlistIds[v.linkedWishlistItemId];
+  });
+
   return (
     <div className="space-y-4">
+      {healthCheckText && (
+        <a href={"#/trip/" + tripId + "/prep"} className="block bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
+          🧭 行程健檢：{healthCheckText} ›
+        </a>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex gap-1.5">
           <button
@@ -104,6 +137,24 @@ function ItineraryPage({ tripId, trip, nickname }) {
             onSelect={setActiveDate}
             dayLocations={dayLocations}
           />
+
+          {todayTickets.length > 0 && (
+            <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2">
+              <span className="text-sm text-emerald-800 font-medium shrink-0">🎫 這天的票券：</span>
+              {todayTickets.map(function (v) {
+                return (
+                  <button
+                    key={(v.isPrivate ? "p-" : "s-") + v.id}
+                    onClick={function () { setQuickViewItem(v); }}
+                    className="text-xs bg-white border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-1"
+                  >
+                    {vaultCategoryIcon(v.category)} {v.title}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div>
             <button
               type="button"
@@ -140,6 +191,8 @@ function ItineraryPage({ tripId, trip, nickname }) {
           />
         </React.Fragment>
       )}
+
+      {quickViewItem && <VaultQuickView item={quickViewItem} onClose={function () { setQuickViewItem(null); }} />}
     </div>
   );
 }
