@@ -8,3 +8,7 @@ node_modules/
 # 那是正常的，只是不要 commit 它們。
 android/
 ios/
+
+# iOS 簽署用的私鑰/憑證，絕對不能進版本控制（這個資料夾只在這台電腦本機用，產生好的憑證之後會轉成
+# GitHub Secrets，私鑰本身不會、也不該出現在 repo 裡）
+ios-signing/
