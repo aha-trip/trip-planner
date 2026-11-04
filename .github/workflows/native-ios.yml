@@ -40,8 +40,16 @@ jobs:
       - name: 第一次執行要先建立 ios/ 專案資料夾
         run: |
           if [ ! -d ios ]; then
-            npx cap add ios
+            # 這個指令最後會自動順便跑一次 pod install，但這時候 Podfile 裡的 iOS 最低版本
+            # 還是 Capacitor 的預設值，裝不下空中更新套件要求的版本，一定會失敗——沒關係，
+            # 專案本身（Podfile 等檔案）已經建立好了，下面會先調整版本需求，再正式跑一次 pod install
+            npx cap add ios || true
           fi
+
+      - name: 空中更新套件需要比較新的 iOS 版本，調整 Podfile 的最低版本需求
+        run: |
+          sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" ios/App/Podfile
+          grep "platform :ios" ios/App/Podfile
 
       - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
         run: npx @capacitor/assets generate --ios --assetPath resources
