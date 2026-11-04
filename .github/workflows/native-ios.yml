@@ -60,6 +60,17 @@ jobs:
               end\\
             end
           " ios/App/Podfile
+          # Google 登入要用到的 GoogleSignIn 原生函式庫，@capacitor-firebase/authentication
+          # 預設不會自動連結進來（要手動加這行），沒加的話 JS 呼叫原生登入會永遠卡住、
+          # 連畫面都不會跳出來——因為原生那邊根本沒有對應的實作可以回應
+          sed -i '' "/# Add your Pods here/a\\
+            pod 'CapacitorFirebaseAuthentication/Google', :path => '../../node_modules/@capacitor-firebase/authentication'
+          " ios/App/Podfile
+          # 驗證用：確認上面真的有插進去，不是因為 Capacitor 範本改了格式、sed 找不到那行而默默沒效果
+          if ! grep -q "CapacitorFirebaseAuthentication/Google" ios/App/Podfile; then
+            echo "::error::沒有成功在 Podfile 加上 Google 登入要用的 pod，Capacitor 的 Podfile 範本可能改了格式（找不到「# Add your Pods here」這行）"
+            exit 1
+          fi
 
       - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
         run: npx @capacitor/assets generate --ios --assetPath resources
