@@ -105,6 +105,12 @@ jobs:
             echo "::warning::還沒有 native-config/GoogleService-Info.plist，這次打包的 App 裡 Google 登入會沒有作用（其他功能都正常），照 SETUP.md 設定好再重新打包一次即可"
           fi
 
+      # Apple 規定同一個版本號（目前是 1.0）底下，每次上傳的「組建編號」一定要比上一次高，
+      # 不能重複，不然上傳到 TestFlight 會被拒絕。用這次 GitHub Actions 執行的流水號（每次
+      # 一定遞增、不會重複）當組建編號，不用自己手動記著上次是多少。
+      - name: 設定組建編號（每次打包自動遞增，Apple 要求不能跟之前重複）
+        run: /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" ios/App/App/Info.plist
+
       - name: 把設定（capacitor.config.json）同步進 ios 專案
         run: npx cap sync ios
 
