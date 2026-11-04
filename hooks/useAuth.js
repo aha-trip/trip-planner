@@ -91,7 +91,16 @@ async function signInWithGoogle() {
     // 這段交給 @capacitor-firebase/authentication 這個外掛處理，它會跳出手機原生的帳號
     // 選擇畫面，選完後把 idToken 回傳給我們，我們再拿這組 idToken 讓網頁版的 Firebase SDK
     // （compat，這個 App 其他地方都是用這個）也同步登入，兩邊狀態才會一致。
-    const result = await window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle();
+    // 除錯用，之後要拿掉：如果原生外掛真的卡住、永遠不 resolve 也不 reject，底下的
+    // try/catch 會完全沒反應、連除錯訊息都跳不出來——加一個 10 秒逾時，這樣至少能
+    // 區分出「卡住」跟「其他原因」兩種情況
+    const nativeCallPromise = window.Capacitor.Plugins.FirebaseAuthentication.signInWithGoogle();
+    const timeoutPromise = new Promise(function (_, reject) {
+      setTimeout(function () {
+        reject(Object.assign(new Error("逾時：原生外掛 10 秒內沒有回應"), { code: "auth/native-timeout" }));
+      }, 10000);
+    });
+    const result = await Promise.race([nativeCallPromise, timeoutPromise]);
     const idToken = result && result.credential && result.credential.idToken;
     if (!idToken) throw Object.assign(new Error("沒有拿到登入憑證"), { code: "auth/native-no-id-token" });
     const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
