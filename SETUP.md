@@ -108,14 +108,25 @@
 
 **第一次跑這個流程**，往下捲到「確保有固定不變的 debug 簽署金鑰」那個步驟，展開它的 log，裡面會印出一段 `SHA1:...` 的指紋——如果你要設定 App 內的 Google 登入，下一節會用到這串數字，先複製起來備用。
 
-### 打包 iOS（只能確認建置得起來，還不能裝到 iPhone）
+### 打包 iOS（正式簽署版，直接上傳 TestFlight）
 
-1. 同樣在「Actions」分頁，選「**打包 iOS App（手動觸發，模擬器版）**」→「Run workflow」
-2. 這一步只能驗證「這個 App 在 Xcode 專案層級建置成功」，產生的是模擬器版，**不能裝到真的 iPhone、也不能上架 App Store**
-3. 要裝到真的 iPhone 或上架，需要：
-   - 申請 **Apple Developer Program**（US$99/年）
-   - 用那個帳號產生簽署憑證、Provisioning Profile
-   - 這些憑證要設定進 GitHub Actions 才能自動簽署——等你申請好帳號，我再帶你走這一段
+在「Actions」分頁選「**打包 iOS App（手動觸發，正式簽署版）**」→「Run workflow」，打包、簽署、上傳 TestFlight 一次跑完，完全不需要 Mac。
+
+這需要先在 GitHub 的 repo → Settings → Secrets and variables → Actions 設定好六個 Secret：
+
+1. **簽署憑證（Apple Distribution Certificate + Provisioning Profile）**
+   - `IOS_DIST_CERT_P12`：Distribution 憑證（含私鑰）轉成 base64 後的內容
+   - `IOS_DIST_CERT_PASSWORD`：上面那個 `.p12` 的保護密碼
+   - `IOS_PROVISION_PROFILE`：App Store 用的 Provisioning Profile（`.mobileprovision`）轉成 base64 後的內容
+   - 沒有 Mac 的話可以用 OpenSSL 產生 CSR、上傳到 Apple Developer 網站換憑證，不一定要 Keychain Access
+2. **App Store Connect API Key（讓 CI 自動上傳 TestFlight，不用 Mac 上的 Transporter）**
+   - 到 App Store Connect → 使用者與存取權限 → 整合 → 團隊金鑰 → 產生，角色選 App Manager
+   - 下載 `.p8`（只能下載一次），轉成 base64 設成 `ASC_API_KEY_P8`
+   - `ASC_API_KEY_ID`：產生出來的 Key ID
+   - `ASC_API_ISSUER_ID`：同一頁上方的 Issuer ID（整個團隊共用）
+   - 上傳前要先在 App Store Connect → My Apps 建立好這個 App 的資料（Bundle ID 選 `io.github.ahatrip.tripplanner`），不然上傳會找不到對象失敗
+
+六個 Secret 缺任何一個，流程會在對應那一步直接失敗並告訴你原因，不會打包出一個簽署失敗或上傳失敗的半成品。跑完幾分鐘後到 App Store Connect 的 TestFlight 分頁就能看到新版本（Apple 伺服器端處理需要一點時間）。
 
 ### App 內的 Google 登入（原生）
 
