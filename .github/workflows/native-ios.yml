@@ -86,13 +86,23 @@ jobs:
             ruby -rxcodeproj -e "
               project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
               target = project.targets.find { |t| t.name == 'App' }
-              group = project.main_group.find_subpath('App', true)
+              # 找跟 AppDelegate.swift 同一個資料夾分組，比用資料夾名稱猜路徑可靠，
+              # 保證新檔案跟專案裡其他原生程式碼放在同一個地方
+              app_delegate_ref = project.files.find { |f| f.path.to_s.end_with?('AppDelegate.swift') }
+              raise '找不到 AppDelegate.swift，Capacitor 專案結構可能變了' unless app_delegate_ref
+              group = app_delegate_ref.parent
               existing = group.files.find { |f| f.path == 'GoogleService-Info.plist' }
               file_ref = existing || group.new_reference('GoogleService-Info.plist')
               already_added = target.resources_build_phase.files.any? { |bf| bf.file_ref == file_ref }
               target.resources_build_phase.add_file_reference(file_ref) unless already_added
               project.save
+              puts '已登記進打包資源清單：' + file_ref.real_path.to_s
             "
+            # 驗證用：確認上面那段真的有把檔案寫進專案設定檔裡，而不是默默失敗
+            if ! grep -q "GoogleService-Info.plist" ios/App/App.xcodeproj/project.pbxproj; then
+              echo "::error::GoogleService-Info.plist 沒有成功登記進 Xcode 專案，App 啟動時 Firebase 會找不到設定檔而當機"
+              exit 1
+            fi
             # Google 登入在 iOS 上需要把這組「反過來寫的用戶端 ID」登記成 App 的網址格式（URL Scheme），
             # 登入視窗跳轉回 App 時系統才知道要交給誰 —— 直接從 plist 裡讀出來，不用手動填
             REVERSED_ID=$(/usr/libexec/PlistBuddy -c "Print :REVERSED_CLIENT_ID" native-config/GoogleService-Info.plist)
