@@ -224,7 +224,7 @@ function Home() {
               </div>
 
               {dateMode === "known" ? (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-slate-700 mb-1">開始日期 *</label>
                     <input
