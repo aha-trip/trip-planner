@@ -9,8 +9,9 @@ function AccountButton({ row }) {
       await signInWithGoogle();
     } catch (err) {
       console.error(err);
-      const msg = describeAuthError(err);
-      if (msg) window.alert(msg);
+      // 除錯用，之後要拿掉：手機上沒辦法像電腦一樣直接看 console，先強制把完整錯誤內容跳出來，
+      // 平常「使用者自己取消」那種狀況會刻意不跳提示，這裡先跳過那個判斷確認真正的錯誤是什麼
+      window.alert("[除錯] code=" + (err && err.code) + " message=" + (err && err.message));
     }
   }
 
