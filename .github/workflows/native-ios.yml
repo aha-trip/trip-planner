@@ -93,6 +93,11 @@ jobs:
           fi
           KEYCHAIN_PASSWORD=$(openssl rand -base64 24)
           echo "$IOS_DIST_CERT_P12" | base64 --decode > $RUNNER_TEMP/dist_cert.p12
+          # 除錯用，之後要拿掉：只印出雜湊值/長度，不會洩漏任何密碼或憑證內容本身，
+          # 用來比對 GitHub Secret 裡貼的內容是不是跟本機原始檔案一致
+          echo "解碼後的 p12 檔案 SHA256（應該要是 ca12c286e10d3e6c4e638d22139bb8993c5c1338f08bfa4d2c913b5f606239e1）："
+          shasum -a 256 $RUNNER_TEMP/dist_cert.p12
+          echo "密碼字串長度（應該要是 24）：${#IOS_DIST_CERT_PASSWORD}"
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
