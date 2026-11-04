@@ -49,6 +49,18 @@ jobs:
       - name: 空中更新套件需要比較新的 iOS 版本，調整 Podfile 的最低版本需求
         run: |
           sed -i '' "s/platform :ios, '.*'/platform :ios, '14.0'/" ios/App/Podfile
+          # 我們的簽署設定（Provisioning Profile）是套用到整個專案，但 CocoaPods 裝的第三方函式庫
+          # 本來就不需要、也不支援簽署，會互相打架，所以在既有的 post_install 裡插一段告訴 Xcode
+          # 這些第三方函式庫不用簽署（只有 App 本體自己需要）
+          sed -i '' "/post_install do |installer|/a\\
+            installer.pods_project.targets.each do |target|\\
+              target.build_configurations.each do |config|\\
+                config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'\\
+                config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'\\
+              end\\
+            end
+          " ios/App/Podfile
+          cat ios/App/Podfile
           grep "platform :ios" ios/App/Podfile
 
       - name: 用 icon.png / splash.png 產生各種尺寸的 App 圖示與啟動畫面
