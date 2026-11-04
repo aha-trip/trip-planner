@@ -80,6 +80,19 @@ jobs:
         run: |
           if [ -f native-config/GoogleService-Info.plist ]; then
             cp native-config/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
+            # 只是把檔案複製到資料夾裡，Xcode 專案本身並不知道要把它打包進 App——
+            # 一定要額外登記進專案的「打包資源清單」，不然編譯出來的 App 裡根本沒有這個檔案，
+            # Firebase 一啟動找不到設定檔就會直接當機。用 CocoaPods 附帶的 xcodeproj 工具登記。
+            ruby -rxcodeproj -e "
+              project = Xcodeproj::Project.open('ios/App/App.xcodeproj')
+              target = project.targets.find { |t| t.name == 'App' }
+              group = project.main_group.find_subpath('App', true)
+              existing = group.files.find { |f| f.path == 'GoogleService-Info.plist' }
+              file_ref = existing || group.new_reference('GoogleService-Info.plist')
+              already_added = target.resources_build_phase.files.any? { |bf| bf.file_ref == file_ref }
+              target.resources_build_phase.add_file_reference(file_ref) unless already_added
+              project.save
+            "
             # Google 登入在 iOS 上需要把這組「反過來寫的用戶端 ID」登記成 App 的網址格式（URL Scheme），
             # 登入視窗跳轉回 App 時系統才知道要交給誰 —— 直接從 plist 裡讀出來，不用手動填
             REVERSED_ID=$(/usr/libexec/PlistBuddy -c "Print :REVERSED_CLIENT_ID" native-config/GoogleService-Info.plist)
