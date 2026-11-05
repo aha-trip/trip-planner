@@ -204,6 +204,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
           "bg-cream/60 backdrop-blur border-b-2 border-brand-200/70 fixed top-0 left-0 right-0 z-10 transition-transform duration-300 " +
           (headerVisible || menuOpen ? "translate-y-0" : "-translate-y-full")
         }
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         {usingLocalBackend && (
           <div className="bg-sky-50 text-sky-800 text-xs text-center py-1 px-2 flex items-center justify-center gap-1">
