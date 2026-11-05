@@ -140,9 +140,17 @@ function buildOtaBundle(hash) {
     copyFileSync(tmpZipPath, join(distDir, "update-bundle.zip"));
     rmSync(tmpZipPath);
 
+    // @capgo/capacitor-updater 新版本強制要求下載的更新包要附一組檢查碼才會下載
+    // （防止下載到被竄改或傳輸中毀損的檔案），沒附會直接被拒絕、丟出「Checksum required」。
+    // 這組檢查碼就是 zip 檔案本身整個的 SHA-256（外掛下載完也會自己算一次這個雜湊來比對，
+    // 兩邊算法要完全一樣：都是對最終的 zip 檔案位元組算 SHA-256，不是對裡面個別檔案算）。
+    const zipBytes = readFileSync(join(distDir, "update-bundle.zip"));
+    const checksum = createHash("sha256").update(zipBytes).digest("hex");
+
     const manifest = {
       version: hash,
       url: OTA_PUBLIC_BASE_URL + "update-bundle.zip",
+      checksum: checksum,
       builtAt: new Date().toISOString(),
     };
     writeFileSync(join(distDir, "update-manifest.json"), JSON.stringify(manifest, null, 2));
