@@ -53,6 +53,9 @@
     /* 手機上輸入框字體小於 16px，iOS Safari 會在點進去時自動放大整個頁面，很干擾，所以統一至少 16px */
     @media (max-width: 640px) { input, select, textarea { font-size: 16px !important; } }
     button, a { -webkit-tap-highlight-color: transparent; }
+    /* 關掉手指往下拉到底後繼續拉的「彈跳」效果——包成 App 之後，固定在頂端的表頭會被
+       這個彈跳一起往下拖，露出瀏海那塊空白，網頁版不受影響（這個效果本來就只在滑到底才看得到）。 */
+    html, body { overscroll-behavior-y: none; }
   </style>
   <script>
     // 離線功能（Service Worker）已經拿掉了：它會快取整個網站，導致「重新整理」不保證拿到最新版本，
