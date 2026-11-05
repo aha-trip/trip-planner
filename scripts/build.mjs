@@ -122,7 +122,7 @@ function buildProdIndexHtml(html, bundleFileName) {
 // 不用額外維護版本號、也不會有「忘記 bump 版本號」這種人為疏失。
 const OTA_PUBLIC_BASE_URL = "https://aha-trip.github.io/trip-planner/";
 
-function buildOtaBundle(hash) {
+function buildOtaBundle() {
   const tmpZipPath = join(root, ".ota-tmp-update-bundle.zip");
   if (existsSync(tmpZipPath)) rmSync(tmpZipPath);
 
@@ -147,8 +147,13 @@ function buildOtaBundle(hash) {
     const zipBytes = readFileSync(join(distDir, "update-bundle.zip"));
     const checksum = createHash("sha256").update(zipBytes).digest("hex");
 
+    // 版本號直接用這個檢查碼（取前面幾碼即可，純粹當識別用），不要再用 bundle.js 的雜湊——
+    // bundle.js 的雜湊只反映 JS 程式碼有沒有變，但 OTA 更新包裡其實整個 dist/ 資料夾都算
+    // （index.html、CSS 等等），只改 index.html（例如這次的 viewport 設定）不會讓 JS 雜湊
+    // 跟著變，會害空中更新誤判成「沒有新版本」而完全不下載——用整個 zip 的檢查碼當版本號，
+    // 才能保證內容只要真的有變、版本號就一定跟著變。
     const manifest = {
-      version: hash,
+      version: checksum.slice(0, 10),
       url: OTA_PUBLIC_BASE_URL + "update-bundle.zip",
       checksum: checksum,
       builtAt: new Date().toISOString(),
@@ -239,7 +244,7 @@ async function main() {
 
   // 一定要排在最後：OTA 更新包要打包「這次 dist/ 最終的完整內容」，前面任何一步漏掉都會讓
   // 更新包裡少東西
-  await buildOtaBundle(hash);
+  await buildOtaBundle();
 
   console.log("完成，輸出在 dist/（bundle 檔名含內容雜湊 " + hash + "，內容沒變就不會換檔名，瀏覽器快取能正常運作；內容一變雜湊就會跟著變，不用再手動改 ?v=2）。");
 }
