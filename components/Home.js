@@ -105,6 +105,16 @@ function Home() {
       <div className="fixed inset-0 -z-10 bg-gradient-to-b from-sky-200 via-cream to-cream" />
       <div className="w-full max-w-md space-y-4">
         <div className="flex justify-end gap-2">
+          {/* 除錯用，之後要拿掉：直接在手機上看空中更新的執行紀錄 */}
+          {window.Capacitor && window.Capacitor.isNativePlatform() && (
+            <button
+              type="button"
+              onClick={function () { window.showOtaDebug(); }}
+              className="shrink-0 h-8 px-2 rounded-full border border-amber-200 bg-white text-[10px] text-slate-500"
+            >
+              OTA除錯
+            </button>
+          )}
           <AccountButton />
           <FontSizeButton />
         </div>
