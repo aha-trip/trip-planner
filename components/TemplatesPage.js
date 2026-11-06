@@ -30,8 +30,11 @@ function TemplatesPage() {
       const tripId = generateId(10);
       const now = firebase.firestore.Timestamp.now();
 
-      const batch = db.batch();
-      batch.set(db.doc("trips/" + tripId), {
+      // 先建立行程本身並等它真的寫入完成，才能接著寫願望清單/行程項目這些子集合：
+      // 安全規則對子集合的寫入權限判斷要讀取（get）這份行程文件，如果跟子集合塞進同一個
+      // batch 一次送出，規則讀到的會是「送出前」的狀態（這時候行程文件還不存在），
+      // 會被直接判定沒有權限、整個 batch 失敗。
+      await db.doc("trips/" + tripId).set({
         name: selected.title,
         destination: selected.destination,
         startDate: startDate,
@@ -45,6 +48,7 @@ function TemplatesPage() {
         createdAt: now,
       });
 
+      const batch = db.batch();
       selected.items.forEach(function (item) {
         const wishlistId = generateId(16);
         batch.set(db.collection("trips/" + tripId + "/wishlistItems").doc(wishlistId), {
