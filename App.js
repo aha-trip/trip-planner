@@ -10,6 +10,9 @@ function parseRoute(hash) {
   if (path === "/demo") {
     return { page: "demo" };
   }
+  if (path === "/templates") {
+    return { page: "templates" };
+  }
   if (path === "/admin/booking-rules") {
     return { page: "admin-booking-rules" };
   }
@@ -38,6 +41,8 @@ function App() {
     page = <TripLayout tripId={route.tripId} activeTab={route.tab} focusItemId={route.extra} />;
   } else if (route.page === "demo") {
     page = <DemoTrip />;
+  } else if (route.page === "templates") {
+    page = <TemplatesPage />;
   } else if (route.page === "admin-booking-rules") {
     page = <AdminBookingRulesPage />;
   } else {

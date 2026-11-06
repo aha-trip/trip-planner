@@ -167,12 +167,20 @@ function Home() {
                 );
               })}
             </div>
-            <a href="#/demo" className="inline-flex items-center justify-center gap-1 text-sm text-brand-600 hover:underline font-medium">
-              <EyeIcon className="w-4 h-4" /> 看範例行程
-            </a>
+            <div className="flex items-center justify-center gap-3">
+              <a href="#/demo" className="inline-flex items-center justify-center gap-1 text-sm text-brand-600 hover:underline font-medium">
+                <EyeIcon className="w-4 h-4" /> 看範例行程
+              </a>
+              <a href="#/templates" className="inline-flex items-center justify-center gap-1 text-sm text-brand-600 hover:underline font-medium">
+                <CompassIcon className="w-4 h-4" /> 沒有資料？看看範本
+              </a>
+            </div>
           </div>
         ) : (
-          <div className="text-right -mt-2">
+          <div className="text-right -mt-2 flex items-center justify-end gap-3">
+            <a href="#/templates" className="text-xs text-slate-400 hover:text-brand-600 hover:underline">
+              範本行程庫
+            </a>
             <a href="#/demo" className="text-xs text-slate-400 hover:text-brand-600 hover:underline">
               看範例行程
             </a>
