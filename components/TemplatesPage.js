@@ -3,16 +3,31 @@
 function TemplatesPage() {
   const auth = useAuth();
   const cloudUid = auth.isGoogle ? auth.user.uid : null;
-  const [selected, setSelected] = React.useState(null); // 選中要套用的範本
+  const [selected, setSelected] = React.useState(null); // 選中要預覽/套用的範本
+  const [days, setDays] = React.useState(1); // 使用者可以調整的天數，預設跟範本一樣
   const [startDate, setStartDate] = React.useState("");
   const [applying, setApplying] = React.useState(false);
   const [error, setError] = React.useState(null);
 
   function openTemplate(tpl) {
     setSelected(tpl);
+    setDays(tpl.days);
     setStartDate("");
     setError(null);
   }
+
+  function changeDays(delta) {
+    setDays(function (d) { return Math.min(30, Math.max(1, d + delta)); });
+  }
+
+  // 依目前調整後的天數分組預覽：天數減少時，超過範圍的地點不會被加入（下面會提示使用者）
+  const previewDays = selected
+    ? Array.from({ length: days }, function (_, i) {
+        const dayNum = i + 1;
+        return { dayNum: dayNum, items: selected.items.filter(function (it) { return it.day === dayNum; }) };
+      })
+    : [];
+  const droppedCount = selected ? selected.items.filter(function (it) { return it.day > days; }).length : 0;
 
   async function handleApply(e) {
     e.preventDefault();
@@ -26,7 +41,8 @@ function TemplatesPage() {
     try {
       await authReadyPromise;
       const currentUser = usingRealFirebase ? firebase.auth().currentUser : null;
-      const endDate = addDays(startDate, selected.days - 1);
+      const itemsToApply = selected.items.filter(function (it) { return it.day <= days; });
+      const endDate = addDays(startDate, days - 1);
       const tripId = generateId(10);
       const now = firebase.firestore.Timestamp.now();
 
@@ -49,7 +65,7 @@ function TemplatesPage() {
       });
 
       const batch = db.batch();
-      selected.items.forEach(function (item) {
+      itemsToApply.forEach(function (item) {
         const wishlistId = generateId(16);
         batch.set(db.collection("trips/" + tripId + "/wishlistItems").doc(wishlistId), {
           name: item.name,
@@ -142,22 +158,79 @@ function TemplatesPage() {
       </div>
 
       {selected && (
-        <div className="fixed inset-0 z-30 bg-black/40 flex items-end sm:items-center justify-center px-4" onClick={function () { if (!applying) setSelected(null); }}>
+        <div className="fixed inset-0 z-30 bg-black/40 flex items-end sm:items-center justify-center sm:px-4" onClick={function () { if (!applying) setSelected(null); }}>
           <div
-            className="bg-white rounded-2xl shadow-lg w-full max-w-sm p-5 space-y-4"
+            className="bg-white rounded-t-2xl sm:rounded-2xl shadow-lg w-full max-w-md max-h-[90vh] flex flex-col"
             onClick={function (e) { e.stopPropagation(); }}
           >
-            <div className="flex items-center gap-3">
+            <div className="p-5 pb-3 shrink-0 flex items-center gap-3 border-b border-amber-100">
               <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style={{ background: selected.accent }}>
                 {selected.emoji}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-800">{selected.title}</p>
-                <p className="text-xs text-slate-500">{selected.destination} · {selected.days} 天</p>
+                <p className="text-xs text-slate-500">{selected.destination} · 原本 {selected.days} 天 · {selected.items.length} 個地點</p>
               </div>
             </div>
 
-            <form onSubmit={handleApply} className="space-y-3">
+            <div className="px-5 py-3 shrink-0 flex items-center justify-between border-b border-amber-100">
+              <span className="text-sm font-medium text-slate-700">天數</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={function () { changeDays(-1); }}
+                  disabled={days <= 1}
+                  className="w-8 h-8 rounded-full border border-amber-200 text-brand-700 font-bold disabled:opacity-30"
+                >
+                  −
+                </button>
+                <span className="w-10 text-center text-sm font-bold text-slate-800">{days} 天</span>
+                <button
+                  type="button"
+                  onClick={function () { changeDays(1); }}
+                  disabled={days >= 30}
+                  className="w-8 h-8 rounded-full border border-amber-200 text-brand-700 font-bold disabled:opacity-30"
+                >
+                  ＋
+                </button>
+              </div>
+            </div>
+
+            <div className="px-5 py-3 overflow-y-auto grow space-y-3">
+              {droppedCount > 0 && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  天數比範本原本的少，後面 {droppedCount} 個地點不會被加進來（可以之後再增加天數）
+                </p>
+              )}
+              {previewDays.map(function (d) {
+                return (
+                  <div key={d.dayNum}>
+                    <p className="text-xs font-bold text-brand-700 mb-1">Day {d.dayNum}</p>
+                    {d.items.length === 0 ? (
+                      <p className="text-xs text-slate-400 pl-1">這天還沒安排，套用後可以自己加地點</p>
+                    ) : (
+                      <div className="space-y-1">
+                        {d.items.map(function (item, i) {
+                          return (
+                            <div key={i} className="bg-amber-50/60 rounded-lg px-2.5 py-1.5 flex items-start gap-2">
+                              <span className="shrink-0 mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-white text-brand-700 border border-brand-100">
+                                {CATEGORY_LABELS[item.category]}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
+                                {item.notes && <p className="text-xs text-slate-500 truncate">{item.notes}</p>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <form onSubmit={handleApply} className="p-5 pt-3 shrink-0 border-t border-amber-100 space-y-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">出發日期</label>
                 <input
