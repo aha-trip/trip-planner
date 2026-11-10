@@ -1,7 +1,7 @@
 // 「更多」選單裡的「設定」子清單：行程成員/編輯行程資訊/帳號/分享連結/清除快取這幾個比較少用
 // 的動作。只回傳列表內容本身（沒有自己的外框/遮罩），讓 BottomNav 把它放進跟「更多」選單
 // 同一個外框裡顯示——寬度才會跟外層一致，不會切換成另一個尺寸的面板。
-function SettingsPanel({ onOpenMembers, onEditTrip, onShare, copied, onBack, onClose }) {
+function SettingsPanel({ onOpenMembers, onEditTrip, onShare, onCopyTrip, allowCopy, copied, onBack, onClose }) {
   const rowClass = "w-full min-h-[44px] flex items-center gap-3 px-4 text-left text-sm text-slate-700 active:bg-amber-50";
 
   return (
@@ -24,6 +24,12 @@ function SettingsPanel({ onOpenMembers, onEditTrip, onShare, copied, onBack, onC
         <LinkIcon className="w-4 h-4 text-brand-600" />
         {copied ? "已複製連結！" : "複製分享連結"}
       </button>
+
+      {allowCopy && (
+        <button type="button" className={rowClass} onClick={function () { onClose(); onCopyTrip(); }}>
+          <CopyIcon className="w-4 h-4 text-brand-600" /> 複製這趟行程
+        </button>
+      )}
 
       <button
         type="button"

@@ -32,6 +32,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   const [copied, setCopied] = React.useState(false);
   const [showMembers, setShowMembers] = React.useState(false);
   const [showEditTrip, setShowEditTrip] = React.useState(false);
+  const [showCopyTrip, setShowCopyTrip] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [tabsMoreOpen, setTabsMoreOpen] = React.useState(false);
   const tabsMoreRef = React.useRef(null);
@@ -234,6 +235,8 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               onOpenMembers={function () { setShowMembers(true); }}
               onEditTrip={function () { setShowEditTrip(true); }}
               onShare={copyShareLink}
+              onCopyTrip={function () { setShowCopyTrip(true); }}
+              allowCopy={Boolean(trip.allowCopy)}
               copied={copied}
             />
             <a
@@ -349,6 +352,8 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         onOpenMembers={function () { setShowMembers(true); }}
         onShare={copyShareLink}
         onEditTrip={function () { setShowEditTrip(true); }}
+        onCopyTrip={function () { setShowCopyTrip(true); }}
+        allowCopy={Boolean(trip.allowCopy)}
         copied={copied}
         wifiLink={WIFI_LINK}
       />
@@ -357,7 +362,9 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         <MemberListPanel
           tripId={tripId}
           isCreator={isCreator}
-          creatorDeviceId={trip.creatorDeviceId}          accessMode={googleOnly ? "google" : "link"}
+          creatorDeviceId={trip.creatorDeviceId}
+          accessMode={googleOnly ? "google" : "link"}
+          allowCopy={Boolean(trip.allowCopy)}
           onClose={function () { setShowMembers(false); }}
         />
       )}
@@ -367,6 +374,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
           tripId={tripId}
           trip={trip}
           onClose={function () { setShowEditTrip(false); }}
+        />
+      )}
+
+      {showCopyTrip && (
+        <CopyTripPanel
+          tripId={tripId}
+          trip={trip}
+          onClose={function () { setShowCopyTrip(false); }}
         />
       )}
     </div>

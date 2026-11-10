@@ -352,6 +352,15 @@ function FolderIcon({ className }) {
   );
 }
 
+function CopyIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8.5" y="8.5" width="11" height="11" rx="1.8" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M15.5,8.5 L15.5,6.3 C15.5,5.2 14.8,4.5 13.7,4.5 L6.3,4.5 C5.2,4.5 4.5,5.2 4.5,6.3 L4.5,13.7 C4.5,14.8 5.2,15.5 6.3,15.5 L8.5,15.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function EyeIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">

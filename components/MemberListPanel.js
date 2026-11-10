@@ -2,13 +2,26 @@
 // 也讓建立者切換這趟行程的編輯權限（有連結就能編輯 / 只有 Google 登入的人能編輯）。
 // 注意：「移除」只是清掉「成員清單」這筆記錄，不是真的收回對方的存取權限（拿到連結的人
 // 還是能重新加入），主要是讓「指定對象分享」的選單保持乾淨。
-function MemberListPanel({ tripId, isCreator, creatorDeviceId, accessMode, onClose }) {
+function MemberListPanel({ tripId, isCreator, creatorDeviceId, accessMode, allowCopy, onClose }) {
   const { data: members } = useCollection(
     "trips/" + tripId + "/members",
     function (ref) { return ref.orderBy("lastSeenAt", "desc"); }
   );
   const auth = useAuth();
   const [savingMode, setSavingMode] = React.useState(false);
+  const [savingAllowCopy, setSavingAllowCopy] = React.useState(false);
+
+  async function handleToggleAllowCopy() {
+    if (savingAllowCopy) return;
+    setSavingAllowCopy(true);
+    try {
+      await db.doc("trips/" + tripId).update({ allowCopy: !allowCopy });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingAllowCopy(false);
+    }
+  }
 
   // 切換這趟行程的編輯權限："link" = 有連結就能編輯；"google" = 只有 Google 登入的人能編輯
   async function handleChangeMode(mode) {
@@ -74,6 +87,19 @@ function MemberListPanel({ tripId, isCreator, creatorDeviceId, accessMode, onClo
               <span>只有 Google 登入的人能編輯<span className="block text-xs text-slate-400">沒登入的人只能看，登入後才能修改</span></span>
             </label>
           </div>
+        )}
+
+        {isCreator && usingRealFirebase && (
+          <label className="mb-4 flex items-start gap-2 text-sm text-slate-700 cursor-pointer rounded-lg bg-amber-50 border border-amber-100 p-3">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={Boolean(allowCopy)}
+              disabled={savingAllowCopy}
+              onChange={handleToggleAllowCopy}
+            />
+            <span>允許別人複製這趟行程<span className="block text-xs text-slate-400">打開後，有連結的人都能把願望清單跟行程複製成他自己的一份（不會動到你這趟）</span></span>
+          </label>
         )}
 
         {members.length === 0 ? (
