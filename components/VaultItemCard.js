@@ -1,6 +1,7 @@
 function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView }) {
   const [copied, setCopied] = React.useState(false);
   const [calendarOpen, setCalendarOpen] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
   const linkedWishlist = (wishlistItems || []).find(function (w) { return w.id === item.linkedWishlistItemId; });
 
   // V8「使用前提醒」：重用 R4 已經做好的行事曆機制，不用另外裝原生推播外掛。
@@ -27,9 +28,14 @@ function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView 
 
   function handleDelete(e) {
     e.stopPropagation();
-    if (!window.confirm("刪除「" + item.title + "」？")) return;
-    if (item.isPrivate) removePrivateVaultItem(tripId, item.id);
-    else db.doc("trips/" + tripId + "/vaultItems/" + item.id).delete();
+    // 跟願望清單/行程/購物清單同一套模式：軟刪除＋5 秒可復原，保管箱放的是護照掃描檔、
+    // 訂票代碼這種重要資料，手滑點到不該是永久、無法挽回的動作。
+    if (item.isPrivate) updatePrivateVaultItem(tripId, item.id, { deletedAt: Date.now() });
+    else db.doc("trips/" + tripId + "/vaultItems/" + item.id).update({ deletedAt: firebase.firestore.Timestamp.now() });
+    showUndoToast("已刪除「" + item.title + "」", function () {
+      if (item.isPrivate) updatePrivateVaultItem(tripId, item.id, { deletedAt: null });
+      else db.doc("trips/" + tripId + "/vaultItems/" + item.id).update({ deletedAt: null });
+    });
   }
 
   function handleCopyCode(e) {
@@ -75,17 +81,24 @@ function VaultItemCard({ tripId, item, wishlistItems, onImageClick, onQuickView 
             <LinkIcon className="w-3 h-3" /> {copied ? "已複製！" : "編號：" + item.confirmationCode}
           </button>
         )}
-        <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
           {item.imageUrl && onQuickView && (
-            <button onClick={function (e) { e.stopPropagation(); onQuickView(); }} className="text-xs text-brand-600 font-medium">出示</button>
+            <button onClick={function (e) { e.stopPropagation(); onQuickView(); }} className="min-h-[36px] px-2 text-xs text-brand-600 font-medium">出示</button>
           )}
           {calendarTask && (
-            <button onClick={function (e) { e.stopPropagation(); setCalendarOpen(!calendarOpen); }} className="text-xs text-brand-600 inline-flex items-center gap-1">
+            <button onClick={function (e) { e.stopPropagation(); setCalendarOpen(!calendarOpen); }} className="min-h-[36px] px-2 text-xs text-brand-600 inline-flex items-center gap-1">
               <CalendarIcon className="w-3.5 h-3.5" /> 提醒
             </button>
           )}
-          <button onClick={toggleUsed} className="text-xs text-slate-500">{item.usedAt ? "標記未使用" : "標記已使用"}</button>
-          <button onClick={handleDelete} className="text-xs text-red-500">刪除</button>
+          <button onClick={toggleUsed} className="min-h-[36px] px-2 text-xs text-slate-500">{item.usedAt ? "標記未使用" : "標記已使用"}</button>
+          {confirmDelete ? (
+            <span className="inline-flex items-center">
+              <button onClick={handleDelete} className="min-h-[36px] px-2 text-xs text-red-600 font-medium">確定刪除</button>
+              <button onClick={function (e) { e.stopPropagation(); setConfirmDelete(false); }} className="min-h-[36px] px-2 text-xs text-slate-400">取消</button>
+            </span>
+          ) : (
+            <button onClick={function (e) { e.stopPropagation(); setConfirmDelete(true); }} className="min-h-[36px] px-2 text-xs text-red-500">刪除</button>
+          )}
         </div>
         {calendarOpen && calendarTask && (
           <div className="flex flex-wrap gap-2 mt-1.5" onClick={function (e) { e.stopPropagation(); }}>

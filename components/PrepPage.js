@@ -30,6 +30,7 @@ function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
   const [calendarOpen, setCalendarOpen] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const [showExpenseForm, setShowExpenseForm] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
   const opensLabel = task.opensAt && task.openTime && task.timezone
     ? formatAsTaiwanTime(zonedTimeToUtc(task.opensAt, task.openTime, task.timezone)) + "（台灣時間）"
     : null;
@@ -38,6 +39,13 @@ function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
 
   function updateTask(patch) {
     db.collection("trips/" + tripId + "/prepTasks").doc(task.id).update(patch).catch(function (err) { console.error(err); });
+  }
+
+  // 範本/規則比對自動產生的任務，配錯或已經不相關時要能收掉——跟其他清單一樣軟刪除＋可復原，
+  // 不要變成永遠卡在清單上、標完成也擺脫不掉的垃圾項目
+  function handleDelete() {
+    updateTask({ deletedAt: firebase.firestore.Timestamp.now() });
+    showUndoToast("已刪除「" + task.title + "」", function () { updateTask({ deletedAt: null }); });
   }
 
   // R6：任務指派與認領。秒殺型任務允許多人同時認領（提示大家一起搶，誰搶到誰回報），
@@ -149,6 +157,16 @@ function PrepTaskCard({ tripId, task, onToggleDone, nickname, memberNames }) {
         >
           <CalendarIcon className="w-3.5 h-3.5" /> 加入行事曆
         </button>
+        {confirmDelete ? (
+          <span className="inline-flex items-center">
+            <button type="button" onClick={handleDelete} className="min-h-[32px] px-2 text-xs text-red-600 font-medium">確定刪除</button>
+            <button type="button" onClick={function () { setConfirmDelete(false); }} className="min-h-[32px] px-2 text-xs text-slate-400">取消</button>
+          </span>
+        ) : (
+          <button type="button" onClick={function () { setConfirmDelete(true); }} className="min-h-[32px] px-2 text-xs text-red-400">
+            刪除
+          </button>
+        )}
       </div>
 
       {showExpenseForm && (

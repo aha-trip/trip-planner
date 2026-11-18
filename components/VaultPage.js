@@ -35,7 +35,11 @@ function VaultPage({ tripId, nickname }) {
   const allItems = sharedItems
     .filter(function (i) { return !i.deletedAt && isSharedItemVisible(i, nickname); })
     .map(function (i) { return Object.assign({ isPrivate: false }, i); })
-    .concat(privateItems.map(function (i) { return Object.assign({ isPrivate: true }, i); }));
+    .concat(
+      privateItems
+        .filter(function (i) { return !i.deletedAt; })
+        .map(function (i) { return Object.assign({ isPrivate: true }, i); })
+    );
 
   const filtered = categoryFilter === "all" ? allItems : allItems.filter(function (i) { return i.category === categoryFilter; });
 

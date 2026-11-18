@@ -83,6 +83,16 @@ function NicknamePrompt({ onSubmit, trip, tripId }) {
             {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
           </div>
         )}
+        {/* 不是每個打開連結的人都想加入一起編輯，可能只是被分享連結的人、單純想看看——
+            沒有退路會被卡在這裡選不是暱稱就是登入。導去唯讀預覽頁，不用選也看得到內容。 */}
+        {tripId && (
+          <a
+            href={"#/trip/" + tripId + "/share"}
+            className="block w-full mt-2 rounded-lg text-sm text-slate-500 hover:text-slate-700 py-2 text-center"
+          >
+            先看看就好（不用選暱稱）
+          </a>
+        )}
       </div>
     </div>
   );

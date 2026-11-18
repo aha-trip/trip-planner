@@ -55,7 +55,7 @@ function OfflineDownloadButton({ tripId, trip }) {
         title={label}
         className={
           "w-8 h-8 flex items-center justify-center rounded-full border transition " +
-          (info ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-white text-slate-600")
+          (downloading ? "border-amber-200 bg-white text-slate-600 animate-pulse" : info ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-white text-slate-600")
         }
       >
         <Icon className="w-4 h-4" />
@@ -67,7 +67,7 @@ function OfflineDownloadButton({ tripId, trip }) {
           <button
             type="button"
             disabled={downloading}
-            onClick={function () { handleDownload(); setOpen(false); }}
+            onClick={handleDownload}
             className="w-full mt-2 min-h-[36px] rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-xs font-medium"
           >
             {downloading ? "下載中..." + progressText : info ? "重新整理離線內容" : "下載供離線使用"}

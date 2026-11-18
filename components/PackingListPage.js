@@ -39,6 +39,7 @@ function SharedPackingRow({ tripId, item, myKey, memberCount }) {
   const checkedMap = item.checkedBy || {};
   const myChecked = Boolean(checkedMap[myKey]);
   const confirmedCount = Object.keys(checkedMap).filter(function (k) { return checkedMap[k]; }).length;
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
 
   function toggleChecked() {
     const patch = {};
@@ -47,7 +48,11 @@ function SharedPackingRow({ tripId, item, myKey, memberCount }) {
   }
 
   function handleDelete() {
-    db.doc("trips/" + tripId + "/packingItems/" + item.id).delete();
+    // 跟其他清單一樣軟刪除＋可復原，不要手滑點到就永久消失
+    db.doc("trips/" + tripId + "/packingItems/" + item.id).update({ deletedAt: firebase.firestore.Timestamp.now() });
+    showUndoToast("已刪除「" + item.name + "」", function () {
+      db.doc("trips/" + tripId + "/packingItems/" + item.id).update({ deletedAt: null });
+    });
   }
 
   function handleRename(newName) {
@@ -72,12 +77,27 @@ function SharedPackingRow({ tripId, item, myKey, memberCount }) {
           <GlobeIcon className="w-3 h-3" /> 共同 · {confirmedCount}/{Math.max(memberCount, 1)} 人已確認
         </span>
       </div>
-      <button onClick={handleDelete} className="shrink-0 min-h-[36px] px-2 text-xs text-red-400">刪除</button>
+      {confirmDelete ? (
+        <span className="shrink-0 inline-flex items-center">
+          <button onClick={handleDelete} className="min-h-[36px] px-2 text-xs text-red-600 font-medium">確定</button>
+          <button onClick={function () { setConfirmDelete(false); }} className="min-h-[36px] px-2 text-xs text-slate-400">取消</button>
+        </span>
+      ) : (
+        <button onClick={function () { setConfirmDelete(true); }} className="shrink-0 min-h-[36px] px-2 text-xs text-red-400">刪除</button>
+      )}
     </div>
   );
 }
 
 function PrivatePackingRow({ tripId, item }) {
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+
+  function handleDelete() {
+    setPrivatePackingItemDeleted(tripId, item.id, Date.now());
+    showUndoToast("已刪除「" + item.name + "」", function () {
+      setPrivatePackingItemDeleted(tripId, item.id, null);
+    });
+  }
   return (
     <div className="flex items-center gap-2 px-3 py-2.5 border-b border-amber-50 last:border-b-0">
       <button
@@ -100,9 +120,14 @@ function PrivatePackingRow({ tripId, item }) {
           <LockIcon className="w-3 h-3" /> 只有我
         </span>
       </div>
-      <button onClick={function () { removePrivatePackingItem(tripId, item.id); }} className="shrink-0 min-h-[36px] px-2 text-xs text-red-400">
-        刪除
-      </button>
+      {confirmDelete ? (
+        <span className="shrink-0 inline-flex items-center">
+          <button onClick={handleDelete} className="min-h-[36px] px-2 text-xs text-red-600 font-medium">確定</button>
+          <button onClick={function () { setConfirmDelete(false); }} className="min-h-[36px] px-2 text-xs text-slate-400">取消</button>
+        </span>
+      ) : (
+        <button onClick={function () { setConfirmDelete(true); }} className="shrink-0 min-h-[36px] px-2 text-xs text-red-400">刪除</button>
+      )}
     </div>
   );
 }
@@ -141,8 +166,13 @@ function PackingListPage({ tripId, nickname }) {
   const memberCount = members.length;
 
   const rows = sharedItems
+    .filter(function (i) { return !i.deletedAt; })
     .map(function (i) { return { kind: "shared", data: i, createdAt: toMillis(i.createdAt) }; })
-    .concat(privateItems.map(function (i) { return { kind: "private", data: i, createdAt: toMillis(i.createdAt) }; }))
+    .concat(
+      privateItems
+        .filter(function (i) { return !i.deletedAt; })
+        .map(function (i) { return { kind: "private", data: i, createdAt: toMillis(i.createdAt) }; })
+    )
     .sort(function (a, b) { return a.createdAt - b.createdAt; });
 
   const existingNames = rows.map(function (r) { return r.data.name; });

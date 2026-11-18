@@ -4,6 +4,7 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
   const [captionDraft, setCaptionDraft] = React.useState(item.caption || "");
   const [editingScope, setEditingScope] = React.useState(false);
   const [imgError, setImgError] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
   const online = useOnlineStatus();
   const imgFailedText = online ? "圖片載入失敗" : "離線時無法顯示（下載供離線使用可先快取圖片）";
   const isPrivate = Boolean(item.isPrivate);
@@ -184,9 +185,16 @@ function ShoppingItemCard({ tripId, item, wishlistItems, compact, onImageClick, 
           )}
         </div>
 
-        <button onClick={handleDelete} className="min-h-[36px] text-xs text-red-500">
-          刪除
-        </button>
+        {confirmDelete ? (
+          <span className="inline-flex items-center">
+            <button onClick={handleDelete} className="min-h-[36px] px-2 text-xs text-red-600 font-medium">確定刪除</button>
+            <button onClick={function () { setConfirmDelete(false); }} className="min-h-[36px] px-2 text-xs text-slate-400">取消</button>
+          </span>
+        ) : (
+          <button onClick={function () { setConfirmDelete(true); }} className="min-h-[36px] text-xs text-red-500">
+            刪除
+          </button>
+        )}
       </div>
     </div>
   );
