@@ -27,7 +27,7 @@ const BOTTOM_NAV_MORE_GROUPS = [
 ];
 const BOTTOM_NAV_OVERFLOW = BOTTOM_NAV_MORE_GROUPS.reduce(function (acc, g) { return acc.concat(g.items); }, []);
 
-function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, onCopyTrip, allowCopy, copied, wifiLink }) {
+function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, onCopyTrip, allowCopy, wifiLink }) {
   const [moreOpen, setMoreOpen] = React.useState(false);
   const [settingsView, setSettingsView] = React.useState(false); // 同一個選單框內，切到「設定」子清單
   const wrapRef = React.useRef(null);
@@ -77,7 +77,6 @@ function BottomNav({ tripId, activeTab, onOpenMembers, onShare, onEditTrip, onCo
               onShare={onShare}
               onCopyTrip={onCopyTrip}
               allowCopy={allowCopy}
-              copied={copied}
               onBack={function () { setSettingsView(false); }}
               onClose={closeMenu}
             />

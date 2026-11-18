@@ -29,10 +29,10 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   // 用 Google 登入時直接用 Google 名稱（換裝置也一樣）；否則用自己輸入的暱稱
   const nickname = auth.isGoogle ? auth.user.displayName : localNickname;
   const [dismissedGooglePrompt, setDismissedGooglePrompt] = React.useState(false);
-  const [copied, setCopied] = React.useState(false);
   const [showMembers, setShowMembers] = React.useState(false);
   const [showEditTrip, setShowEditTrip] = React.useState(false);
   const [showCopyTrip, setShowCopyTrip] = React.useState(false);
+  const [showShareLink, setShowShareLink] = React.useState(false);
   const [copyBannerDismissed, setCopyBannerDismissed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [tabsMoreOpen, setTabsMoreOpen] = React.useState(false);
@@ -118,35 +118,6 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
       approxDays: trip.approxDays || null,
     });
   }, [tripId, uid, auth.isGoogle, trip && trip.name, trip && trip.destination, trip && trip.startDate, trip && trip.endDate, trip && trip.approxDays]);
-
-  async function copyShareLink() {
-    const url = window.location.origin + window.location.pathname + "#/trip/" + tripId + "/wishlist";
-    // 包裝成 App 之後，有原生的分享選單（傳 LINE、訊息、Email…）可以用，比單純複製連結更好用，
-    // 也是補 App Store 審查要求「要有原生功能」的其中一項。網頁版沒有 window.Capacitor，走原本複製連結。
-    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-      try {
-        await window.Capacitor.Plugins.Share.share({
-          title: trip.name,
-          text: "一起規劃「" + trip.name + "」吧！",
-          url: url,
-          dialogTitle: "分享行程連結",
-        });
-        return;
-      } catch (err) {
-        // 使用者自己關掉分享視窗也會跑到這裡，不是真的錯誤，不用額外處理，安靜結束就好
-        return;
-      }
-    }
-    navigator.clipboard
-      .writeText(url)
-      .then(function () {
-        setCopied(true);
-        setTimeout(function () { setCopied(false); }, 2000);
-      })
-      .catch(function () {
-        window.prompt("複製這個連結分享給大家：", url);
-      });
-  }
 
   if (loading) {
     return (
@@ -235,10 +206,9 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
               setOpen={setMenuOpen}
               onOpenMembers={function () { setShowMembers(true); }}
               onEditTrip={function () { setShowEditTrip(true); }}
-              onShare={copyShareLink}
+              onShare={function () { setShowShareLink(true); }}
               onCopyTrip={function () { setShowCopyTrip(true); }}
               allowCopy={Boolean(trip.allowCopy)}
-              copied={copied}
             />
             <a
               href="#/"
@@ -377,11 +347,10 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         tripId={tripId}
         activeTab={activeTab}
         onOpenMembers={function () { setShowMembers(true); }}
-        onShare={copyShareLink}
+        onShare={function () { setShowShareLink(true); }}
         onEditTrip={function () { setShowEditTrip(true); }}
         onCopyTrip={function () { setShowCopyTrip(true); }}
         allowCopy={Boolean(trip.allowCopy)}
-        copied={copied}
         wifiLink={WIFI_LINK}
       />
 
@@ -409,6 +378,14 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
           tripId={tripId}
           trip={trip}
           onClose={function () { setShowCopyTrip(false); }}
+        />
+      )}
+
+      {showShareLink && (
+        <ShareLinkPanel
+          tripId={tripId}
+          trip={trip}
+          onClose={function () { setShowShareLink(false); }}
         />
       )}
     </div>

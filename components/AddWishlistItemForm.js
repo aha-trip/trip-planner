@@ -10,25 +10,37 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
   const [saving, setSaving] = React.useState(false);
   const [placesActive, setPlacesActive] = React.useState(Boolean(CONFIG.googleMapsApiKey));
   const online = useOnlineStatus();
-  const [showMapsUrlInput, setShowMapsUrlInput] = React.useState(false);
-  const [mapsUrl, setMapsUrl] = React.useState("");
+  // 直接貼在地點名稱欄位裡就會自動偵測、解析，不要另外弄一個欄位要人多打一次字——
+  // 從 Google 地圖複製連結，就是為了貼這裡，不是為了貼到另一個專門的連結框裡。
   const [mapsUrlStatus, setMapsUrlStatus] = React.useState(null); // null | "loading" | "shortlink" | "failed"
+  const [lastShortUrl, setLastShortUrl] = React.useState("");
 
-  async function handleParseMapsUrl(e) {
+  async function handleNameInputPaste(e) {
+    const pasted = ((e.clipboardData && e.clipboardData.getData("text")) || "").trim();
+    if (!/^https?:\/\//i.test(pasted) || !parseGoogleMapsUrl(pasted)) return; // 不是 Google 地圖連結，當一般文字正常貼上
     e.preventDefault();
-    if (!mapsUrl.trim()) return;
+    setName("");
+    setAddress("");
+    setCoords({ lat: null, lng: null, placeId: null });
     setMapsUrlStatus("loading");
-    const result = await resolveGoogleMapsUrl(mapsUrl.trim());
+    const result = await resolveGoogleMapsUrl(pasted);
     if (!result.ok) {
-      setMapsUrlStatus(result.reason === "shortlink" ? "shortlink" : "failed");
+      if (result.reason === "shortlink") {
+        // maps.app.goo.gl 這種縮短連結沒辦法直接解析（瀏覽器安全限制擋著，詳見 lib/googleMapsImport.js），
+        // 直接幫他開一次連結省一個步驟，使用者只要在新分頁複製變完整後的網址、回來貼同一個欄位就好，
+        // 不用自己找連結點、也不用切到另一個框填。
+        window.open(pasted, "_blank");
+        setLastShortUrl(pasted);
+        setMapsUrlStatus("shortlink");
+      } else {
+        setMapsUrlStatus("failed");
+      }
       return;
     }
     setName(result.name || "");
     setAddress(result.address || "");
     setCoords({ lat: result.lat, lng: result.lng, placeId: result.placeId });
     setMapsUrlStatus(null);
-    setMapsUrl("");
-    setShowMapsUrlInput(false);
   }
 
   React.useEffect(function () {
@@ -74,14 +86,30 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
     <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-amber-100 p-4 space-y-3">
       <input
         ref={inputRef}
-        className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-        placeholder={placesActive && online ? "搜尋地點名稱..." : "地點名稱"}
+        className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-amber-50/50"
+        placeholder={placesActive && online ? "搜尋地點名稱，或直接貼上 Google 地圖連結" : "地點名稱"}
         value={name}
+        disabled={mapsUrlStatus === "loading"}
+        onPaste={handleNameInputPaste}
         onChange={function (e) {
           setName(e.target.value);
           setCoords({ lat: null, lng: null, placeId: null });
+          setMapsUrlStatus(null);
         }}
       />
+
+      {mapsUrlStatus === "loading" && (
+        <p className="text-xs text-slate-400 px-1">正在解析 Google 地圖連結...</p>
+      )}
+      {mapsUrlStatus === "shortlink" && (
+        <p className="text-xs text-amber-800 px-1">
+          這是縮短過的連結，已經幫你開新分頁了——在那邊網址列變成完整的 google.com/maps/... 之後，複製那個網址再貼回剛剛的欄位一次就好。
+          （如果沒跳出新分頁：<a href={lastShortUrl} target="_blank" rel="noopener noreferrer" className="underline">點這裡開啟</a>）
+        </p>
+      )}
+      {mapsUrlStatus === "failed" && (
+        <p className="text-xs text-red-600 px-1">這個 Google 地圖連結解析不出內容，可以改手動輸入名稱。</p>
+      )}
 
       {!placesActive && (
         <input
@@ -95,45 +123,6 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
         <p className="text-xs text-slate-400 px-1 flex items-center gap-1"><OfflineIcon className="w-3.5 h-3.5 shrink-0" /> 離線中，先手動輸入名稱就好，連上網路後可以搜尋地點</p>
       )}
       {placesActive && online && address && <p className="text-xs text-slate-400 px-1">{address}</p>}
-
-      {!showMapsUrlInput ? (
-        <button
-          type="button"
-          onClick={function () { setShowMapsUrlInput(true); }}
-          className="text-xs text-brand-600 hover:underline px-1 flex items-center gap-1"
-        >
-          <PinIcon className="w-3.5 h-3.5" /> 或貼上 Google 地圖連結
-        </button>
-      ) : (
-        <div className="rounded-lg bg-amber-50 border border-amber-100 p-2.5 space-y-2">
-          <div className="flex gap-1.5">
-            <input
-              className="flex-1 min-w-0 rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-              placeholder="貼上 Google 地圖的地點連結"
-              value={mapsUrl}
-              onChange={function (e) { setMapsUrl(e.target.value); setMapsUrlStatus(null); }}
-            />
-            <button
-              type="button"
-              onClick={handleParseMapsUrl}
-              disabled={mapsUrlStatus === "loading" || !mapsUrl.trim()}
-              className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium px-3"
-            >
-              {mapsUrlStatus === "loading" ? "解析中..." : "帶入"}
-            </button>
-          </div>
-          {mapsUrlStatus === "shortlink" && (
-            <p className="text-xs text-amber-800">
-              這是縮短過的連結（maps.app.goo.gl），沒辦法直接解析。先點一次下面這個連結，等網址列變成完整的
-              google.com/maps/... 之後，複製那個網址再貼回來一次：
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="underline block mt-1 break-all">{mapsUrl}</a>
-            </p>
-          )}
-          {mapsUrlStatus === "failed" && (
-            <p className="text-xs text-red-600">看起來不是 Google 地圖的地點連結，或是解析不出內容，可以改手動輸入名稱。</p>
-          )}
-        </div>
-      )}
 
       <div className="flex flex-wrap gap-1.5">
         {CATEGORY_OPTIONS.map(function (c) {

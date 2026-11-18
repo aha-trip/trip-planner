@@ -1,7 +1,7 @@
 // 標題列右上角的「功能」選單：行程成員、帳號登入/登出、分享連結都收在這裡。
 // 只在網頁版（sm 以上）顯示——手機版把同一批動作收進畫面下方 <BottomNav/> 的「更多」選單，
 // 避免手機上同時有兩個入口長得很像的選單（這裡的跟 BottomNav 的）讓人搞混。
-function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, onCopyTrip, allowCopy, copied }) {
+function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, onCopyTrip, allowCopy }) {
   const wrapRef = React.useRef(null);
 
   React.useEffect(function () {
@@ -55,9 +55,9 @@ function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, onCopyT
           </div>
 
           <div>
-            <button type="button" className={rowClass} onClick={onShare}>
+            <button type="button" className={rowClass} onClick={function () { setOpen(false); onShare(); }}>
               <LinkIcon className="w-4 h-4 text-brand-600" />
-              {copied ? "已複製連結！" : "複製分享連結"}
+              分享這趟行程
             </button>
 
             {allowCopy && (
