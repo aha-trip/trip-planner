@@ -61,6 +61,7 @@ function TemplatesPage() {
         creatorDeviceId: getDeviceId(),
         creatorUid: currentUser ? currentUser.uid : null,
         accessMode: "link",
+        allowCopy: true,
         createdAt: now,
       });
 

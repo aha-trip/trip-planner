@@ -36,48 +36,54 @@ function HeaderMenu({ open, setOpen, onOpenMembers, onShare, onEditTrip, onCopyT
 
       {open && (
         <div className="absolute left-0 top-full mt-2 w-60 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-amber-100 overflow-hidden z-30 divide-y divide-amber-100">
-          <button
-            type="button"
-            className={rowClass}
-            onClick={function () { setOpen(false); onOpenMembers(); }}
-          >
-            <PeopleIcon className="w-4 h-4 text-brand-600" /> 行程成員
-          </button>
-
-          <button
-            type="button"
-            className={rowClass}
-            onClick={function () { setOpen(false); onEditTrip(); }}
-          >
-            <PencilIcon className="w-4 h-4 text-brand-600" /> 編輯行程資訊
-          </button>
-
-          <AccountButton row={true} />
-
-          <button type="button" className={rowClass} onClick={onShare}>
-            <LinkIcon className="w-4 h-4 text-brand-600" />
-            {copied ? "已複製連結！" : "複製分享連結"}
-          </button>
-
-          {allowCopy && (
-            <button type="button" className={rowClass} onClick={function () { setOpen(false); onCopyTrip(); }}>
-              <CopyIcon className="w-4 h-4 text-brand-600" /> 複製這趟行程
+          <div>
+            <button
+              type="button"
+              className={rowClass}
+              onClick={function () { setOpen(false); onOpenMembers(); }}
+            >
+              <PeopleIcon className="w-4 h-4 text-brand-600" /> 行程成員
             </button>
-          )}
 
-          <button
-            type="button"
-            className={rowClass}
-            onClick={function () {
-              setOpen(false);
-              if (window.confirm("清除本機快取並重新同步？（不會刪除任何資料，只是讓這台裝置重新跟伺服器拿一次最新內容，畫面會重新整理）")) {
-                clearFirestoreCacheAndReload();
-              }
-            }}
-          >
-            <RefreshIcon className="w-4 h-4 text-brand-600" />
-            清除本機快取並重新同步
-          </button>
+            <button
+              type="button"
+              className={rowClass}
+              onClick={function () { setOpen(false); onEditTrip(); }}
+            >
+              <PencilIcon className="w-4 h-4 text-brand-600" /> 編輯行程資訊
+            </button>
+          </div>
+
+          <div>
+            <button type="button" className={rowClass} onClick={onShare}>
+              <LinkIcon className="w-4 h-4 text-brand-600" />
+              {copied ? "已複製連結！" : "複製分享連結"}
+            </button>
+
+            {allowCopy && (
+              <button type="button" className={rowClass} onClick={function () { setOpen(false); onCopyTrip(); }}>
+                <CopyIcon className="w-4 h-4 text-brand-600" /> 複製這趟行程
+              </button>
+            )}
+          </div>
+
+          <div>
+            <AccountButton row={true} />
+
+            <button
+              type="button"
+              className={rowClass}
+              onClick={function () {
+                setOpen(false);
+                if (window.confirm("清除本機快取並重新同步？（不會刪除任何資料，只是讓這台裝置重新跟伺服器拿一次最新內容，畫面會重新整理）")) {
+                  clearFirestoreCacheAndReload();
+                }
+              }}
+            >
+              <RefreshIcon className="w-4 h-4 text-brand-600" />
+              清除本機快取並重新同步
+            </button>
+          </div>
         </div>
       )}
     </div>

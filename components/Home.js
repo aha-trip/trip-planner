@@ -67,6 +67,7 @@ function Home() {
         creatorDeviceId: getDeviceId(),
         creatorUid: currentUser ? currentUser.uid : null,
         accessMode: "link",
+        allowCopy: true,
         createdAt: firebase.firestore.Timestamp.now(),
       });
       recordRecentTrip(tripId, {

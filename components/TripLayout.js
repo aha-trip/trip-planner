@@ -33,6 +33,7 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
   const [showMembers, setShowMembers] = React.useState(false);
   const [showEditTrip, setShowEditTrip] = React.useState(false);
   const [showCopyTrip, setShowCopyTrip] = React.useState(false);
+  const [copyBannerDismissed, setCopyBannerDismissed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [tabsMoreOpen, setTabsMoreOpen] = React.useState(false);
   const tabsMoreRef = React.useRef(null);
@@ -333,6 +334,32 @@ function TripLayout({ tripId, activeTab, focusItemId }) {
         </nav>
       </header>
       <div style={{ height: headerHeight }} />
+
+      {/* 別人用分享連結點進來、這趟行程又開放複製時，直接在最顯眼的地方邀請對方複製一份，
+          不用自己去選單裡翻——建立者自己就不用看這個，他看得到的是選單裡的「允許別人複製」開關。 */}
+      {trip.allowCopy && !isCreator && !copyBannerDismissed && (
+        <div className="max-w-3xl mx-auto px-4 pt-4">
+          <div className="rounded-xl bg-brand-50 border border-brand-100 px-4 py-3 flex items-center gap-3">
+            <CopyIcon className="w-5 h-5 text-brand-600 shrink-0" />
+            <p className="min-w-0 flex-1 text-sm text-brand-800">喜歡這趟行程嗎？複製一份變成你自己的，之後怎麼改都不會動到原本這趟。</p>
+            <button
+              type="button"
+              onClick={function () { setShowCopyTrip(true); }}
+              className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium px-3 py-2 transition"
+            >
+              複製這趟行程
+            </button>
+            <button
+              type="button"
+              onClick={function () { setCopyBannerDismissed(true); }}
+              aria-label="關閉"
+              className="shrink-0 text-brand-400 hover:text-brand-700 w-6 h-6 flex items-center justify-center"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-3xl mx-auto px-4 py-6 pb-24 sm:pb-6">
         {activeTab === "wishlist" && <WishlistPage tripId={tripId} trip={trip} nickname={nickname} />}

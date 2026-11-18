@@ -86,7 +86,7 @@ function CopyTripPanel({ tripId, trip, onClose }) {
         creatorDeviceId: getDeviceId(),
         creatorUid: currentUser ? currentUser.uid : null,
         accessMode: "link",
-        allowCopy: false,
+        allowCopy: true,
         copiedFrom: tripId,
         createdAt: now,
       });

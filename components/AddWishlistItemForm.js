@@ -10,6 +10,26 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
   const [saving, setSaving] = React.useState(false);
   const [placesActive, setPlacesActive] = React.useState(Boolean(CONFIG.googleMapsApiKey));
   const online = useOnlineStatus();
+  const [showMapsUrlInput, setShowMapsUrlInput] = React.useState(false);
+  const [mapsUrl, setMapsUrl] = React.useState("");
+  const [mapsUrlStatus, setMapsUrlStatus] = React.useState(null); // null | "loading" | "shortlink" | "failed"
+
+  async function handleParseMapsUrl(e) {
+    e.preventDefault();
+    if (!mapsUrl.trim()) return;
+    setMapsUrlStatus("loading");
+    const result = await resolveGoogleMapsUrl(mapsUrl.trim());
+    if (!result.ok) {
+      setMapsUrlStatus(result.reason === "shortlink" ? "shortlink" : "failed");
+      return;
+    }
+    setName(result.name || "");
+    setAddress(result.address || "");
+    setCoords({ lat: result.lat, lng: result.lng, placeId: result.placeId });
+    setMapsUrlStatus(null);
+    setMapsUrl("");
+    setShowMapsUrlInput(false);
+  }
 
   React.useEffect(function () {
     if (!CONFIG.googleMapsApiKey || !inputRef.current || !online) return;
@@ -75,6 +95,45 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
         <p className="text-xs text-slate-400 px-1 flex items-center gap-1"><OfflineIcon className="w-3.5 h-3.5 shrink-0" /> 離線中，先手動輸入名稱就好，連上網路後可以搜尋地點</p>
       )}
       {placesActive && online && address && <p className="text-xs text-slate-400 px-1">{address}</p>}
+
+      {!showMapsUrlInput ? (
+        <button
+          type="button"
+          onClick={function () { setShowMapsUrlInput(true); }}
+          className="text-xs text-brand-600 hover:underline px-1 flex items-center gap-1"
+        >
+          <PinIcon className="w-3.5 h-3.5" /> 或貼上 Google 地圖連結
+        </button>
+      ) : (
+        <div className="rounded-lg bg-amber-50 border border-amber-100 p-2.5 space-y-2">
+          <div className="flex gap-1.5">
+            <input
+              className="flex-1 min-w-0 rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+              placeholder="貼上 Google 地圖的地點連結"
+              value={mapsUrl}
+              onChange={function (e) { setMapsUrl(e.target.value); setMapsUrlStatus(null); }}
+            />
+            <button
+              type="button"
+              onClick={handleParseMapsUrl}
+              disabled={mapsUrlStatus === "loading" || !mapsUrl.trim()}
+              className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium px-3"
+            >
+              {mapsUrlStatus === "loading" ? "解析中..." : "帶入"}
+            </button>
+          </div>
+          {mapsUrlStatus === "shortlink" && (
+            <p className="text-xs text-amber-800">
+              這是縮短過的連結（maps.app.goo.gl），沒辦法直接解析。先點一次下面這個連結，等網址列變成完整的
+              google.com/maps/... 之後，複製那個網址再貼回來一次：
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="underline block mt-1 break-all">{mapsUrl}</a>
+            </p>
+          )}
+          {mapsUrlStatus === "failed" && (
+            <p className="text-xs text-red-600">看起來不是 Google 地圖的地點連結，或是解析不出內容，可以改手動輸入名稱。</p>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-1.5">
         {CATEGORY_OPTIONS.map(function (c) {
