@@ -87,7 +87,7 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
       <input
         ref={inputRef}
         className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-amber-50/50"
-        placeholder={placesActive && online ? "搜尋地點名稱，或直接貼上 Google 地圖連結" : "地點名稱"}
+        placeholder={placesActive && online ? "搜尋地點名稱，或直接貼上 Google 地圖連結" : "地點名稱，或直接貼上 Google 地圖連結"}
         value={name}
         disabled={mapsUrlStatus === "loading"}
         onPaste={handleNameInputPaste}
@@ -113,10 +113,12 @@ function AddWishlistItemForm({ tripId, nickname, onCreated, submitLabel }) {
 
       {!placesActive && (
         <input
-          className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="地址（選填，沒有 Google Maps 金鑰時手動輸入）"
+          className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-amber-50/50"
+          placeholder="地址（選填），或貼上 Google 地圖連結"
           value={address}
-          onChange={function (e) { setAddress(e.target.value); }}
+          disabled={mapsUrlStatus === "loading"}
+          onPaste={handleNameInputPaste}
+          onChange={function (e) { setAddress(e.target.value); setMapsUrlStatus(null); }}
         />
       )}
       {placesActive && !online && (
